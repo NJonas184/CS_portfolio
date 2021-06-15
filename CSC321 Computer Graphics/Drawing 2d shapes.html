@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>CSC321 Computer Graphics</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r83/three.min.js">
+    </script>
+    <style>
+        /*
+          Set margin to 0 and overflow to hidden
+          to get the use of the whole page for our
+          image.
+        */
+        margin: 0;
+        overflow: hidden;
+    </style>
+</head>
+
+<body>
+    <!-- 
+        Here is the part of the page (the 'div') that
+        will hold our picture.
+    -->
+    <div id="WebGL-output">
+    </div>
+</body>
+
+<!-- Here is where we put our code that draws the image. -->
+<script>
+
+    // We are writing that code in JavaScript.
+
+    function init() {
+        // create a scene, that will hold all our elements such as objects, cameras and lights.
+        var scene = new THREE.Scene();
+
+        // create a render and set the size
+        const renderer = new THREE.WebGLRenderer({scene, antialias: true});
+        renderer.setClearColor(new THREE.Color(0xEEEEEE), 1.0);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+	const fov = 60;
+  	const aspect = 1;
+  	const near = 0.1;
+  	const far = Number.MAX_SAFE_INTEGER;
+  	const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+  	camera.position.z = 5;
+
+
+	const points = new THREE.Geometry();
+	points.vertices.push(new THREE.Vector3(-2, -2, 0));
+	points.vertices.push(new THREE.Vector3(2, 2, 0));
+
+	let material = new THREE.LineBasicMaterial({opacity: 1.0, linewidth: 1, color: 0x000000});
+
+	const line = new THREE.Line(points, material);
+	scene.add(line);
+
+
+        // add the output of the renderer to the html element
+        document.getElementById("WebGL-output").appendChild(renderer.domElement);
+
+        // render the scene
+        renderer.render(scene, camera);
+    };
+
+    window.onload = init;
+</script>
+
+</html>

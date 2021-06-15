@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>CSC321 Computer Graphics</title>
+    <script src="js/three.js"></script>
+    <style>
+        /*
+          Set margin to 0 and overflow to hidden
+          to get the use of the whole page for our
+          image.
+        */
+        margin: 0;
+        overflow: hidden;
+    </style>
+</head>
+
+<body>
+    <!-- 
+        Here is the part of the page (the 'div') that
+        will hold our picture.
+    -->
+    <div id="WebGL-output">
+    </div>
+</body>
+
+<!-- Here is where we put our code that draws the image. -->
+<script>
+    function init() {
+	// create a scene, that will hold all our elements such as objects, cameras and lights.
+        var scene = new THREE.Scene();
+
+        // create a camera, which defines where we're looking at.
+        var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+        // create a render and set the size
+        var renderer = new THREE.WebGLRenderer();
+        renderer.setClearColor(new THREE.Color(0xEEEEEE, 1.0));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+	renderer.shadowMap.enabled = true;
+
+        let spotLight = new THREE.SpotLight(0xffffff);
+        spotLight.position.set(40, 60, 50);
+        spotLight.castShadow = true;
+        scene.add(spotLight);
+
+        // show axes in the screen
+        var axes = new THREE.AxesHelper(20);
+        scene.add(axes);
+
+        // create the ground plane
+        var planeGeometry = new THREE.PlaneGeometry(48, 48, 1, 1);
+        var planeMaterial = new THREE.MeshLambertMaterial({color: 0x2E8B57});
+        var plane = new THREE.Mesh(planeGeometry, planeMaterial);
+	plane.receiveShadow = true;
+
+        // rotate and position the plane
+        plane.rotation.x = -0.5 * Math.PI;
+        plane.position.x = 0;
+        plane.position.y = 0;
+        plane.position.z = 0;
+
+        // add the plane to the scene
+        scene.add(plane);
+
+        // create a cube
+        var cubeGeometry = new THREE.BoxGeometry(16, 1, 16);
+        var cubeMaterial = new THREE.MeshLambertMaterial({color: 0xAAAAAA, wireframe: false});
+        var foundation0 = new THREE.Mesh(cubeGeometry, cubeMaterial);
+
+        // position the cube
+        foundation0.position.x = 0;
+        foundation0.position.y = 0;
+        foundation0.position.z = 0;
+
+        // add the cube to the scene
+	foundation0.castShadow = true;
+        scene.add(foundation0);
+
+	cubeGeometry = new THREE.BoxGeometry(14, 1, 14);
+	var foundation1 = new THREE.Mesh(cubeGeometry, cubeMaterial);
+        foundation1.position.y = 1;
+	foundation1.castShadow = true;
+	scene.add(foundation1);
+
+
+
+	cubeGeometry = new THREE.BoxGeometry(12, 10, 12);
+	cubeMaterial = new THREE.MeshLambertMaterial({color: 0xE077FF, wireframe: false});
+	var house = new THREE.Mesh(cubeGeometry, cubeMaterial);
+	
+	house.position.y = 2
+	house.castShadow = true;
+	scene.add(house);
+
+	let vertices = [];
+
+	let frontTop = {x:0, y:4, z:0};
+	vertices.push(frontTop.x);
+	vertices.push(frontTop.y);
+	vertices.push(frontTop.z);
+	let frontLowerLeft = {x:-7, y:0, z:7};
+	vertices.push(frontLowerLeft.x);
+	vertices.push(frontLowerLeft.y);
+	vertices.push(frontLowerLeft.z);
+	let frontLowerRight = {x:7, y:0, z:7};
+	vertices.push(frontLowerRight.x);
+	vertices.push(frontLowerRight.y);
+	vertices.push(frontLowerRight.z);
+
+	let backTop = {x:0, y:4, z:-7};
+	vertices.push(backTop.x);
+	vertices.push(backTop.y);
+	vertices.push(backTop.z);
+	let backLowerLeft = {x:-7, y:0, z:-7};
+	vertices.push(backLowerLeft.x);
+	vertices.push(backLowerLeft.y);
+	vertices.push(backLowerLeft.z);
+	let backLowerRight = {x:7, y:0, z:-7};
+	vertices.push(backLowerRight.x);
+	vertices.push(backLowerRight.y);
+	vertices.push(backLowerRight.z);
+
+	let indices = [];
+
+	//front
+	indices.push(0);
+	indices.push(1);
+	indices.push(2);
+
+	//back
+	indices.push(3);
+	indices.push(4);
+	indices.push(5);
+
+
+	//left
+	//    frontTop
+	//    frontLowerLeft
+	//    backLowerRight
+	//    backTop
+	
+	indices.push(0);
+	indices.push(5);
+	indices.push(1);
+
+	indices.push(0);
+	indices.push(3);
+	indices.push(5);
+
+	//right
+	//    frontTop
+	//    frontLowerRight
+	//    backLowerLeft
+	//    backTop
+
+	
+	
+	let roofGeometry = new THREE.PolyhedronGeometry(vertices, indices, 14);
+	let roofMaterial = new THREE.MeshLambertMaterial({color: 0xE077FF, wireframe: false});
+
+	let roof = new THREE.Mesh(roofGeometry, roofMaterial)
+	roof.position.y = 8;
+	scene.add(roof);
+	
+	/*
+        // create a sphere
+        var sphereGeometry = new THREE.SphereGeometry(4, 20, 20);
+        var sphereMaterial = new THREE.MeshLambertMaterial({color: 0x7777ff, wireframe: false});
+        var sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+
+        // position the sphere
+        sphere.position.x = 20;
+        sphere.position.y = 4;
+        sphere.position.z = 2;
+
+        // add the sphere to the scene
+	sphere.castShadow = true;
+        scene.add(sphere);
+	*/
+
+
+        // position and point the camera to the center of the scene
+        camera.position.x = -12;
+        camera.position.y = 12;
+        camera.position.z = 40;
+        camera.lookAt(scene.position);
+
+        // add the output of the renderer to the html element
+        document.getElementById("WebGL-output").appendChild(renderer.domElement);
+
+        // render the scene
+        renderer.render(scene, camera);
+
+    };
+
+    window.onload = init;
+</script>
+
+</html>

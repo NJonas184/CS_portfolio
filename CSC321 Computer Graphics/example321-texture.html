@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>CSC321 Computer Graphics</title>
+
+    <!-- Get the JavaScript library from a server on the Internet. -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js">
+    </script>
+
+    <style>
+        /*
+          Set margin to 0 and overflow to hidden
+          to get the use of the whole page for our
+          image.
+        */
+        margin: 0;
+        overflow: hidden;
+    </style>
+</head>
+
+<body>
+    <!-- 
+        Here is the part of the page (the 'div') that
+        will hold our picture.
+    -->
+    <div id="WebGL-output">
+    </div>
+
+</body>
+
+<!-- Here is where we put our code that draws the image. -->
+<script>
+    // TO-DO: Run this program by running an http server
+    // on your own computer.
+    //     * Open a terminal window.
+    //     * Type: python -m http.server
+    //     * Open a browser.
+    //     * Type localhost:8000 into the address field
+    //       in the browser.
+    //     * Select this file. (You might have to
+    //       select the folder that contains this file.)
+
+    let renderer;
+    let scene;
+    let camera;
+    let figure;
+
+    // TO-DO: Add other X11 or HTML colors to this palette 
+    // if you like.
+    const palette = {
+        lightGoldenrod: 0xFAFAD2,
+        lightSeaGreen: 0x20B2AA,
+        mediumAquamarine: 0x66CDAA,
+        midnightBlue: 0x191970,
+        mistyRose: 0xFFE4E1,
+        paleGreen: 0x98FB98,
+        slateBlue: 0x6A5ACD };
+
+    function renderScene() {
+        // TO-DO: Change the speed and direction of
+        // rotation to please yourself.
+        figure.rotation.x += 0.02;
+        figure.rotation.y += 0.04;
+
+
+        requestAnimationFrame( renderScene );
+        renderer.render( scene, camera )
+    } // renderScene()
+
+
+    function makeListOfComponents() {
+        let components = [];
+
+        const loader = new THREE.TextureLoader();
+
+        // TO-DO: Create and use your own image file.
+        // Use an image that measures 64 x 64, 128 x 128,
+        // 256 x 256, 512 x 512, or 1024 x 1024 pixels.
+        // Put the image file in the same folder as the
+        // HTML file (the file that contains this code).
+        const texture = loader.load( './buildings/brick-wall.jpg' );
+
+        // TO-DO: Try RepeatWrapping and MirroredRepeatWrapping.
+        // Choose this...
+        //texture.wrapS = THREE.RepeatWrapping;
+        //texture.wrapT = THREE.RepeatWrapping;
+
+        // Or this...
+        texture.wrapS = THREE.MirroredRepeatWrapping;
+        texture.wrapT = THREE.MirroredRepeatWrapping;
+
+        // Specify how frequently we want to repeat
+        // the pattern in each of 2 directions
+        // TO-DO: Experiment with other values.
+        texture.repeat = new THREE.Vector2( 4, 4 );
+
+        // TO-DO: Does the choice of MeshLambertMaterial or
+        // MeshPhongMaterial make any difference? Experiment.
+        const stoneMaterial = new THREE.MeshLambertMaterial( {map:texture} );
+
+        // TO-DO: Make a different choice (an integer 0 to 7).
+        // See how the software maps the texture onto different
+        // shapes.
+        const choice = 0;
+
+        // TO-DO: You might find it helpful to put this
+        // switch() statement in a separate function, especially
+        // if you choose to build and draw an assembly that
+        // contains more than one shape.
+
+        // TO-DO: Would it be better to create a parameter
+        // that specifies the size of these shapes? 
+        // Would not named constants in place of numbers like
+        // 12 and 64 (whose significance a reader might not recognize)
+        // improve the readability of the code?
+
+        let someGeometry = undefined;
+        switch( choice ) {
+          case 0: 
+              someGeometry = new THREE.BoxGeometry( 12, 12, 12 );
+              break;
+          case 1: 
+              someGeometry = new THREE.ConeGeometry( 12, 12, 64 );
+              break;
+          case 2: 
+              someGeometry = new THREE.CylinderGeometry( 12, 12, 12, 64, 4 );
+              break;
+          case 3: 
+              someGeometry = new THREE.DodecahedronGeometry( 12 );
+              break;
+          case 4: 
+              someGeometry = new THREE.IcosahedronGeometry( 12 );
+              break;
+          case 5: 
+              someGeometry = new THREE.OctahedronGeometry( 12 );
+              break;
+          case 6: 
+              someGeometry = new THREE.SphereGeometry( 12, 128, 128 );
+              break;
+          case 7: 
+              someGeometry = new THREE.TorusGeometry( 8, 4, 64, 64 );
+              break;
+          default:
+              someGeometry = new THREE.BoxGeometry( 12, 12, 12 );
+          }
+
+        const something = new THREE.Mesh( someGeometry, stoneMaterial );
+
+        something.position.y = 2;
+
+        components.push( something );
+
+        // TO-DO: Add a second or third shape.
+ 
+        return components;
+    } // makeListOfComponents()
+
+    function assembleByAdding( components ) {
+        figure = new THREE.Group();
+        for( c of components ) {
+            figure.add( c );
+        } // for
+        return figure;
+    } // assembleByAdding()
+
+    function init() {
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(45,
+            window.innerWidth/window.innerHeight, 0.1, 1000);
+
+        renderer = new THREE.WebGLRenderer();
+        // TO-DO: Try a different background color.
+        renderer.setClearColor( palette.paleGreen );
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        renderer.shadowMapEnabled = true;
+
+        // TO-DO: Is one light enough?
+        let spotLight = new THREE.SpotLight( 0xFFFFFF );
+        spotLight.position.set( 40, 60, 50 );
+
+        scene.add( spotLight );
+
+        let axes = new THREE.AxisHelper(20);
+        scene.add( axes );
+
+        let components = makeListOfComponents();
+     
+        figure = assembleByAdding( components );
+
+        scene.add( figure );
+
+        // TO-DO: If you want to see shadows, you will
+        // have to add something on which to cast shadows.
+        // Can you find code in other examples that we have
+        // shared that will give us something on to which
+        // we can cast shadows?
+        figure.castShow = true;
+        spotLight.castShadow = true;
+
+        camera.position.x = -12;
+        camera.position.y = 12;
+        camera.position.z = 40;
+        camera.lookAt( scene.position );
+
+        document.getElementById( "WebGL-output").
+            appendChild( renderer.domElement );
+        //renderer.render( scene, camera );
+        renderScene();
+    }; // init()
+
+    window.onload = init;
+</script>
+
+</html>

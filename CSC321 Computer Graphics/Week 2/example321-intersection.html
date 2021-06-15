@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>CSC321 Computer Graphics</title>
+
+    <!-- Get the JavaScript library from a server on the Internet. -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js">
+    </script>
+
+    <style>
+        /*
+          Set margin to 0 and overflow to hidden
+          to get the use of the whole page for our
+          image.
+        */
+        margin: 0;
+        overflow: hidden;
+    </style>
+</head>
+
+<body>
+    <!-- 
+        Here is the part of the page (the 'div') that
+        will hold our picture.
+    -->
+    <div id="WebGL-output">
+    </div>
+</body>
+
+<!-- Here is where we put our code that draws the image. -->
+<script>
+
+    let renderer;
+    let scene;
+    let camera;
+    let figure;
+
+    function x11color( colorName ) {
+        x11colors = { };
+        x11colors.aquamarine = 0x7FFFD4;
+        x11colors.lightGoldenrod = 0xFAFAD2;
+        x11colors.lightSeaGreen = 0x20B2AA;
+        x11colors.mediumAquamarine = 0x66CDAA;
+        x11colors.midnightBlue = 0x191970;
+        x11colors.mistyRose = 0xFFE4E1;
+        x11colors.paleGreen = 0x98FB98;
+        x11colors.slateBlue = 0x6A5ACD;
+        x11colors.thistle = 0xD8BFD8;
+        x11colors.tomato = 0xFF6347;
+        x11colors.wheat = 0xF5DEB3;
+
+        return x11colors[colorName];
+    } // x11color()
+
+    function makeEndpoints( radius ) {
+        const result = {};
+
+        let angle = Math.random() * 2.0 * Math.PI;
+        result.x0 = radius * Math.cos( angle );
+        result.y0 = radius * Math.sin( angle );
+        result.x1 = radius * Math.cos( angle + Math.PI );
+        result.y1 = radius * Math.sin( angle + Math.PI );
+
+        const fraction = Math.random();
+        const cx = result.x0 + fraction * (result.x1 - result.x0);
+        const cy = result.y0 + fraction * (result.y1 - result.y0);
+
+        angle = Math.random() * 2.0 * Math.PI;
+        result.x2 = cx + radius * Math.cos( angle );
+        result.y2 = cy + radius * Math.sin( angle );
+        result.x3 = cx + radius * Math.cos( angle + Math.PI );
+        result.y3 = cy + radius * Math.sin( angle + Math.PI );
+
+        return result;
+    } // makeEndpoints()
+
+    function makeLineSegments( endpoints, color ) {
+        // endpoints of one line segment
+        const x0 = endpoints.x0;
+        const y0 = endpoints.y0;
+
+        const x1 = endpoints.x1;
+        const y1 = endpoints.y1;
+
+        // endpoints of other line segment
+        const x2 = endpoints.x2;
+        const y2 = endpoints.y2;
+
+        const x3 = endpoints.x3;
+        const y3 = endpoints.y3;
+
+        const arrayOfVectors = [];
+        arrayOfVectors.push( new THREE.Vector3( x0, y0, 0 ) );
+        arrayOfVectors.push( new THREE.Vector3( x1, y1, 0 ) );
+        arrayOfVectors.push( new THREE.Vector3( x2, y2, 0 ) );
+        arrayOfVectors.push( new THREE.Vector3( x3, y3, 0 ) );
+        
+        let geometry = new THREE.BufferGeometry();
+        geometry = geometry.setFromPoints( arrayOfVectors );
+
+        const materialOptions = { color: color };
+
+        const material = new THREE.LineBasicMaterial( materialOptions );
+
+        return new THREE.LineSegments( geometry, material );
+    } // makeLineSegments()
+
+    function findPointOfIntersection( endpoints ) {
+        // endpoints of one line segment
+        const x0 = endpoints.x0;
+        const y0 = endpoints.y0;
+
+        const x1 = endpoints.x1;
+        const y1 = endpoints.y1;
+
+        // endpoints of other line segment
+        const x2 = endpoints.x2;
+        const y2 = endpoints.y2;
+
+        const x3 = endpoints.x3;
+        const y3 = endpoints.y3;
+
+        // TO-DO: Add code that will compute the
+        // coordinates of the point (x, y) at which
+        // the 2 line segments intersect.
+
+	// Uses ax + by = c
+
+	let a1 = y1 - y0
+	let b1 = x0 - x1
+	let c1 = a1*x0 + b1*y0
+
+	let a2 = y3 - y2;
+	let b2 = x2 - x3;
+	let c2 = a2*x2 + b2*y2
+
+	let determinant = a1*b2 - a2*b1;
+
+	let intx;
+	let inty
+	if (determinant != 0){
+	    intx = (b2*c1 - b1*c2)/determinant
+	    inty = (a1*c2 - a2*c1)/determinant
+	} else {
+	    intx = 0;
+	    inty = 0;	
+	}
+
+
+	/*
+	let slope1 = (y1 - y0) / (x1 - x0)
+	let slope2 = (y3 - y2) / (x3 - x2)
+
+	let b1 = y0 - (x0 * slope1)
+	let b2 = y2 - (x2 * slope2)
+
+	let intx = ((slope1 * x0) + b1 - b2)/slope2
+	let inty = ((slope1 * intx) + b1)
+	*/
+
+        // Replace these placeholder values.
+        const x = intx;
+        const y = inty;
+        const result = {};
+        result.x = x;
+        result.y = y;
+
+        return result;
+    } // findPointOfIntersection()
+
+    function init() {
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(45,
+            window.innerWidth/window.innerHeight, 0.1, 1000);
+
+        renderer = new THREE.WebGLRenderer();
+        renderer.setClearColor( x11color( "aquamarine" ) );
+        renderer.setSize( window.innerWidth, window.innerHeight );
+
+        // Construct and draw random, intersecting line segments.
+        const radius = 24;
+        const endpoints = makeEndpoints( radius );
+        const lineSegments = makeLineSegments( endpoints, x11color("slateBlue") );
+        
+        scene.add( lineSegments )
+	console.log(endpoints)
+
+        // Find and draw point of intersection.
+        const pointOfIntersection = findPointOfIntersection( endpoints );
+
+	console.log(pointOfIntersection);
+
+        const circleRadius = 0.5;
+        const numberOfSegments = 64;
+        const circleGeometry = new THREE.CircleGeometry( circleRadius, numberOfSegments );
+
+        const circleMaterial = new THREE.MeshBasicMaterial( {color: x11color("midnightBlue")} );
+
+        const circle = new THREE.Mesh( circleGeometry, circleMaterial );
+        circle.position.x = pointOfIntersection.x;
+        circle.position.y = pointOfIntersection.y;
+
+        scene.add( circle );
+
+        camera.position.x = 0;
+        camera.position.y = 0;
+        camera.position.z = 64;
+        camera.lookAt( scene.position );
+
+        document.getElementById( "WebGL-output").
+            appendChild( renderer.domElement );
+        renderer.render( scene, camera );
+    };
+
+    window.onload = init;
+</script>
+
+</html>

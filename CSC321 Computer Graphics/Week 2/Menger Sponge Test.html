@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>CSC321 Computer Graphics</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r83/three.min.js">
+    </script>
+    <style>
+        /*
+          Set margin to 0 and overflow to hidden
+          to get the use of the whole page for our
+          image.
+        */
+        margin: 0;
+        overflow: hidden;
+    </style>
+</head>
+
+<body>
+    <!-- 
+        Here is the part of the page (the 'div') that
+        will hold our picture.
+    -->
+    <div id="WebGL-output">
+    </div>
+</body>
+
+<!-- Here is where we put our code that draws the image. -->
+<script>
+
+    // We are writing that code in JavaScript.
+
+    	var params = {
+		size: 10, // size of the fractal. 
+		maxLevel: 2	// maximum order of the fractal. Be careful with making this value too large	
+	};
+
+	var scene = new THREE.Scene();
+	//scene.background = new THREE.Color( 0xcccccc );
+	//scene.fog = new THREE.FogExp2( 0xcccccc, 0.002 );	
+	var camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);	// 75 = FOV (Field of View).
+	
+	camera.position.z = params.size * 1.5;
+
+	//var renderer = new THREE.WebGLRenderer();
+	var renderer = new THREE.WebGLRenderer({ alpha: true });  // transparent background color is possible
+	renderer.setClearColor( 0xffffff, 1); // white bg color, opacity 1.
+	renderer.setPixelRatio( window.devicePixelRatio );
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	document.body.appendChild(renderer.domElement);
+
+	var material = new THREE.MeshNormalMaterial();
+	//var wireframeMaterial = new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: 2 } );
+	
+	var MengerFractal = new THREE.Group();	
+
+	// draw a cube
+	function voxel(x,y,z,r) {
+		//var cubeGeom = new THREE.CubeGeometry(r,r,r);
+		var cubeGeom = new THREE.BoxBufferGeometry(r,r,r);		
+		var cube = new THREE.Mesh(cubeGeom, material);
+		//var cubeWireframeGeom = new THREE.EdgesGeometry( cube.geometry ); // or WireframeGeometry		
+		//cube.add( new THREE.LineSegments( cubeWireframeGeom, wireframeMaterial ) ); // add wireframe
+		cube.position.set(x, y, z);
+		console.log(cube.position)		
+		MengerFractal.add(cube);
+	};
+	
+	// construct the fractal
+	function fractal(x,y,z,r,level) {
+		if (level > 0 && level <= params.maxLevel && level <= 3) {
+			var newR = r/3; // size of a voxel
+			var pos = [];		
+			for (var i = -1; i < 2; i++) {
+				for (var j = -1; j < 2; j++) {
+					for (var k = -1; k < 2; k++) {
+						// Of the mid boxes always at least 2 coordinates are 0. Thus for those not to be drawn boxes: sum <= 1.
+						// Inspired by: The Coding Train: Coding Challenge #2: Menger Fractal, https://youtu.be/LG8ZK-rRkXo
+						var sum = Math.abs(i) + Math.abs(j)+ Math.abs(k);					
+						if (sum > 1) {
+							var t = pos.length;
+							pos[t] = { x:x+i*newR, y:y+j*newR, z:z+k*newR };						
+							if (level === params.maxLevel) voxel(pos[t].x, pos[t].y, pos[t].z, newR);
+						}					
+					}
+				}
+			}
+			// recursion
+			var nextLevel = level + 1;
+			for (t=0; t < pos.length; t++) {
+				fractal(pos[t].x, pos[t].y, pos[t].z, newR, nextLevel);			
+			}
+		}
+	};				
+	
+	// Add a light
+	var light = new THREE.PointLight(0xFFFFFF);
+	light.position.set(10, 0, 25);
+	MengerFractal.add(light);
+
+	var render = function () {
+		renderer.render(scene, camera);		
+	};	
+	
+	// Draw the fractal
+	fractal(0,0,0,params.size,1);
+	scene.add( MengerFractal );
+	// Calling the render function
+	render();
+
+    window.onload = init;
+</script>
+
+</html>

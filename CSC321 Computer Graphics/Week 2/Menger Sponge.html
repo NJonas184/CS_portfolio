@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>CSC321 Computer Graphics</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r83/three.min.js">
+    </script>
+    <style>
+        /*
+          Set margin to 0 and overflow to hidden
+          to get the use of the whole page for our
+          image.
+        */
+        margin: 0;
+        overflow: hidden;
+    </style>
+</head>
+
+<body>
+    <!-- 
+        Here is the part of the page (the 'div') that
+        will hold our picture.
+    -->
+    <div id="WebGL-output">
+    </div>
+</body>
+
+<!-- Here is where we put our code that draws the image. -->
+<script>
+
+    // We are writing that code in JavaScript.
+
+    let camera;
+    let scene;
+    let renderer;
+
+    let maxLevel = 3;
+
+    let cubeGroup = new THREE.Group();
+
+    
+    function renderScene() {
+        // TO-DO: Change the speed and direction of
+        // rotation to please yourself.
+        cubeGroup.rotation.x += 0.02;
+        cubeGroup.rotation.y += 0.04;
+
+
+        requestAnimationFrame( renderScene );
+        renderer.render( scene, camera )
+    } // renderScene()
+
+
+    function createCube(x,y,z,r){
+	let cubeMaterial = new THREE.MeshPhongMaterial({color: 0xFF0000})
+	let cubeGeometry = new THREE.BoxGeometry(r,r,r);
+	let cube = new THREE.Mesh(cubeGeometry, cubeMaterial)
+	cube.position.set(x,y,z);
+	cubeGroup.add(cube);
+
+    };
+    
+    function mengerSponge(x,y,z,r,level){
+
+	if(level > 0 && level <= maxLevel){
+	    let pos = [];
+	    let newR = r/3
+	    //Each cube is going to be divisible into 9 cubes. The "center-cube" in each cube will be missing
+   	    //This means that if the cube's sum of it's position (i, j, k) variables is less than 1, it should not be placed/should be removed.
+	    
+	    for(let i = -1; i < 2; i++){
+	        for(let j = -1; j < 2; j++){
+	    	    for(let k = -1; k < 2; k++){
+		        let sum = Math.abs(i) + Math.abs(j) + Math.abs(k);
+		        if(sum > 1){
+			    let t = pos.length;
+			    pos[t] = { x:x+i*newR, y:y+j*newR, z:z+k*newR };
+			    if(level === maxLevel) createCube(pos[t].x, pos[t].y, pos[t].z, newR);
+		        }
+		    }
+	        }
+	    }
+	    let nextLevel = level + 1;
+	    for(let t = 0; t < pos.length; t++){
+	        mengerSponge(pos[t].x, pos[t].y, pos[t].z, newR, nextLevel)
+	    }
+	}
+
+    };//mengerSponge
+
+    function init() {
+        // create a scene, that will hold all our elements such as objects, cameras and lights.
+        
+	scene = new THREE.Scene();
+        // create a camera, which defines where we're looking at.
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+        // create a render and set the size
+        renderer = new THREE.WebGLRenderer();
+        renderer.setClearColor(new THREE.Color(0xEEEEEE), 1.0);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+	let spotlight = new THREE.SpotLight({color: 0xFFFFFF})
+	spotlight.position.set(10, 100, 0);
+	scene.add(spotlight)
+
+	mengerSponge(0,0,0, 10, 1)
+	scene.add(cubeGroup);
+
+
+        camera.position.x = 0;
+        camera.position.y = 0;
+        camera.position.z = 20;
+        camera.lookAt(scene.position);
+
+        // add the output of the renderer to the html element
+        document.getElementById("WebGL-output").appendChild(renderer.domElement);
+
+        // render the scene
+        renderScene();
+    };
+
+    window.onload = init;
+</script>
+
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>CSC321 Computer Graphics</title>
+    <script src="js/three.js"></script>
+    <style>
+        /*
+          Set margin to 0 and overflow to hidden
+          to get the use of the whole page for our
+          image.
+        */
+        margin: 0;
+        overflow: hidden;
+    </style>
+</head>
+
+<body>
+    <!-- 
+        Here is the part of the page (the 'div') that
+        will hold our picture.
+    -->
+    <div id="WebGL-output">
+    </div>
+</body>
+
+<!-- Here is where we put our code that draws the image. -->
+<script>
+
+    function init() {
+        x11colors = { };
+        // TO-DO: Create a different collection of colors
+        x11colors.aquamarine = 0x7FFFD4;
+        x11colors.tomato = 0xFF6347;
+        x11colors.wheat = 0xF5DEB3;
+        x11colors.thistle = 0xD8BFD8;
+	x11colors.coral = 0xFF7F50;
+	x11colors.lightBlue = 0xADD8E6;
+	x11colors.lightSeaGreen = 0x20B2AA;
+
+        let scene = new THREE.Scene();
+        let camera = new THREE.PerspectiveCamera(45,
+            window.innerWidth/window.innerHeight, 0.1, 1000);
+
+        let renderer = new THREE.WebGLRenderer();
+        renderer.setClearColor( x11colors.aquamarine );
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        renderer.shadowMap.enabled = true;
+        
+        // TO-DO: Try moving the lights.
+        let spotLight0 = new THREE.SpotLight( 0xFFFFFF );
+        spotLight0.position.set( -40, 60, -10 );
+
+        scene.add( spotLight0 );
+
+        let spotLight1 = new THREE.SpotLight( 0xFFFFFF );
+        spotLight1.position.set( -50, 20, 40 );
+
+        scene.add( spotLight1 );
+
+        let planeGeometry = new THREE.PlaneGeometry(80, 80, 1, 1);
+        let planeMaterial = new THREE.MeshPhongMaterial(
+          {color: x11colors.tomato} );
+        let plane = new THREE.Mesh( planeGeometry, planeMaterial );
+
+        plane.rotation.x = -0.5 * Math.PI;
+        plane.position.x = 0;
+        plane.position.y = 0;
+        plane.position.z = 0;
+
+        scene.add( plane )
+
+        let cubeMaterials = [];
+        // TO-DO: Try different colors for the cubes. You might want
+        // more than two colors.
+        cubeMaterials.push( new THREE.MeshLambertMaterial(
+            {color: x11colors.lightSeaGreen, wireframe: false} ));
+        cubeMaterials.push( new THREE.MeshLambertMaterial(
+            {color: x11colors.coral, wireframe: false} ));
+
+        // TO-DO: Try different numbers of layers of cubes.
+        let numberOfLayers = 4;
+        // TO-DO: Try different sizes for the cubes.
+        let cubeEdgeLength = 4;
+
+        // TO-DO: Try changing the separation between cubes.
+        let dx = cubeEdgeLength+6;
+        let dy = cubeEdgeLength+1;
+        let dz = cubeEdgeLength+6;
+
+        let cubes= [];
+        // TO-DO: Try varying the height of the bottom layer
+        // of the cubes above the ground.
+        let yStart = 2;
+
+        for( let i = 0; i < numberOfLayers; i++ ) {
+            let n = (numberOfLayers * 2 - 1) - 2 * i;
+            let xStart = -n/2 * dx;
+            let zStart = -n/2 * dz;
+            for( let j = 0; j < n; j++ ) {
+                for( let k = 0; k < n; k++ ) {
+                    // TO-DO: Maybe you would to substitute some other kind of
+                    // of shape than cubes?
+                    let cubeGeometry = new THREE.BoxGeometry(cubeEdgeLength, cubeEdgeLength, cubeEdgeLength);
+
+                    // TO-DO: Try a different algorithm for selecting materials.
+                    // You might choose among more than two different materials.
+                    let index = (j + k) % 2;
+                    let cubeMaterial = cubeMaterials[index];
+		    let kangle;
+                    let cube = new THREE.Mesh( cubeGeometry, cubeMaterial );
+		    if(k > 0){
+			kangle = (360/n) * k
+		    } else {
+			kangle = 360
+		    }
+                    cube.position.x = xStart + j * dx;
+                    cube.position.y = yStart + i * dy;
+                    cube.position.z = zStart + k * dz;
+
+                    scene.add( cube );
+
+                    cubes.push( cube );
+                } // for
+            } // for
+        } // for
+
+
+        plane.receiveShadow = true;
+
+        for( cube of cubes ) {
+            cube.castShadow = true;
+        } // for
+
+        spotLight0.castShadow = true;
+        spotLight1.castShadow = true;
+
+        // TO-DO: Try moving the camera.
+        camera.position.x = -36; // -30
+        camera.position.y = 32; // 40
+        camera.position.z = 60; // 30
+        camera.lookAt( scene.position );
+
+        document.getElementById( "WebGL-output").
+            appendChild( renderer.domElement );
+        renderer.render( scene, camera );
+    };
+
+    window.onload = init;
+</script>
+
+</html>

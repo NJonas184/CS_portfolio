@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>CSC321 Computer Graphics</title>
+
+    <!-- Get the JavaScript library from a server on the Internet. -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r83/three.min.js">
+    </script>
+
+    <style>
+        /*
+          Set margin to 0 and overflow to hidden
+          to get the use of the whole page for our
+          image.
+        */
+        margin: 0;
+        overflow: hidden;
+    </style>
+</head>
+
+<body>
+    <!-- 
+        Here is the part of the page (the 'div') that
+        will hold our picture.
+    -->
+    <div id="WebGL-output">
+    </div>
+
+</body>
+
+<!-- Here is where we put our code that draws the image. -->
+<script>
+
+    let renderer;
+    let scene;
+    let camera;
+    let figure;
+
+    function renderScene() {
+        //figure.rotation.y += 0.01;
+
+        requestAnimationFrame( renderScene );
+        renderer.render( scene, camera )
+    } // renderScene()
+
+    function factoryRoofGeometry() {
+        let hangarRoof = new THREE.Shape();
+
+        // Clockwise listing of points that will
+        // define the shape---a rectangle whose
+        // top edge is replaced with a Bezier curve
+        let lowerLeft = new THREE.Vector2( -6.0, 0.0 );
+        let upperLeft = new THREE.Vector2( -6.0, 8.0 );
+        let upperRight = new THREE.Vector2( 6.0, 8.0 );
+        let lowerRight = new THREE.Vector2( 6.0, 0.0 );
+	let roofTopRight = new THREE.Vector2(6, 13);
+	let roofTopLeft = new THREE.Vector2(1, 13);
+	
+
+        hangarRoof.moveTo( lowerLeft.x, lowerLeft.y );
+        hangarRoof.lineTo( upperLeft.x, upperLeft.y );
+	
+	hangarRoof.lineTo(1, 8)
+
+	hangarRoof.lineTo(roofTopLeft.x, roofTopLeft.y)
+	hangarRoof.lineTo(roofTopRight.x, roofTopRight.y)
+        hangarRoof.lineTo( upperRight.x, upperRight.y );
+        hangarRoof.lineTo( lowerRight.x, lowerRight.y );
+
+	
+	
+	
+
+        let extrusionOptions = {
+            amount: 0,
+            bevelThickness: 15,
+            bevelSize: 0
+        };
+
+        let result = new THREE.ExtrudeGeometry( hangarRoof, extrusionOptions );
+
+        return result;
+    } // factoryRoofGeometry()
+
+    function makeListOfComponents() {
+
+        //let cubeMaterial = new THREE.MeshPhongMaterial(
+        //    {color: 0xAAAAAA, wireframe: false} );
+
+        let roofGeometry = factoryRoofGeometry();
+
+        let roofMaterial = new THREE.MeshPhongMaterial(
+            {color: 0xE077FF, wireframe: false} );
+        let roof = new THREE.Mesh( roofGeometry, roofMaterial );
+
+        roof.position.y = 1;
+
+        let components = [];
+        components.push( roof );
+
+        return components;
+    } // makeListOfComponents()
+
+    function assembleByAdding( components ) {
+        figure = new THREE.Object3D();
+        for( c of components ) {
+            figure.add( c );
+        } // for
+        return figure;
+    } // assembleByAdding()
+
+    function assembleByMerging( components ) {
+        let assembly = new THREE.Geometry();
+
+        for( c of components ) {
+            c.updateMatrix();
+            assembly.merge( c.geometry, c.matrix );
+        } // for
+
+        figure = new THREE.Mesh( assembly, components[0].material );
+
+        return figure;
+    } // assembleByMergin()
+
+    function init() {
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(45,
+            window.innerWidth/window.innerHeight, 0.1, 1000);
+
+        renderer = new THREE.WebGLRenderer();
+        renderer.setClearColor( 0xEEEEEE );
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        renderer.shadowMap.enabled = true;
+
+        let spotLight = new THREE.SpotLight( 0xFFFFFF );
+        spotLight.position.set( 40, 60, 50 );
+
+        scene.add( spotLight );
+
+        let axes = new THREE.AxisHelper(20);
+        scene.add( axes );
+
+        // TO-DO: Try making small changes.
+        //     Change the values of parameters.
+        //     Learn the meaning and significance of parameters.
+        let planeGeometry = new THREE.PlaneGeometry(100, 100, 1, 1);
+        let planeMaterial = new THREE.MeshPhongMaterial(
+          {color: 0x2E8B57} );
+        let plane = new THREE.Mesh( planeGeometry, planeMaterial );
+
+        plane.rotation.x = -0.5 * Math.PI;
+        plane.position.x = 0;
+        plane.position.y = 0;
+        plane.position.z = 0;
+        scene.add( plane )
+
+	let components = makeListOfComponents();
+     
+        factory = assembleByAdding( components );
+        //figure = assembleByMerging( components );
+
+        scene.add( factory );
+	factory.castShadow = true;
+
+
+	let cylinderGeometry = new THREE.CylinderGeometry(0.6, 1, 10, 8);
+	let cylinderMaterial = new THREE.MeshPhongMaterial({color: 0xCCCCCC});
+	
+	let cylinder1 = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
+	cylinder1.position.x= -2;
+	cylinder1.position.y = 14;
+	cylinder1.position.z = 12;
+	scene.add(cylinder1);
+	cylinder1.castShadow= true;
+
+	let cylinder2 = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
+	cylinder2.position.x= -2;
+	cylinder2.position.y = 14;
+	cylinder2.position.z = -12
+	scene.add(cylinder2);
+	cylinder2.castShadow= true;
+
+	let cylinder3 = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
+	cylinder3.position.x= -2;
+	cylinder3.position.y = 14;
+	cylinder3.position.z = 0
+	scene.add(cylinder3);
+	cylinder3.castShadow= true;
+
+	spotLight.castShadow = true;
+
+        plane.receiveShadow = true;
+
+        camera.position.x = -20;
+        camera.position.y = 12;
+        camera.position.z = 40;
+        camera.lookAt( scene.position );
+
+        document.getElementById( "WebGL-output").
+            appendChild( renderer.domElement );
+        //renderer.render( scene, camera );
+        renderScene();
+    }; // init()
+
+    window.onload = init;
+</script>
+
+</html>

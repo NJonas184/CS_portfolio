@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>CSC321 Computer Graphics</title>
+
+    <!-- Get the JavaScript library from a server on the Internet. -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js">
+    </script>
+
+    <style>
+        /*
+          Set margin to 0 and overflow to hidden
+          to get the use of the whole page for our
+          image.
+        */
+        margin: 0;
+        overflow: hidden;
+    </style>
+</head>
+
+<body>
+    <!-- 
+        Here is the part of the page (the 'div') that
+        will hold our picture.
+    -->
+    <div id="WebGL-output">
+    </div>
+</body>
+
+<!-- Here is where we put our code that draws the image. -->
+<script>
+
+    let renderer;
+    let scene;
+    let camera;
+    let figure;
+
+    function renderScene() {
+        figure.rotation.y += 0.02;
+        figure.rotation.x += 0.04;
+
+        requestAnimationFrame( renderScene );
+        renderer.render( scene, camera )
+    } // renderScene()
+
+    function x11color( colorName ) {
+        x11colors = { };
+        x11colors.aquamarine = 0x7FFFD4;
+        x11colors.lightGoldenrod = 0xFAFAD2;
+        x11colors.lightSeaGreen = 0x20B2AA;
+        x11colors.mediumAquamarine = 0x66CDAA;
+        x11colors.midnightBlue = 0x191970;
+        x11colors.mistyRose = 0xFFE4E1;
+        x11colors.paleGreen = 0x98FB98;
+        x11colors.slateBlue = 0x6A5ACD;
+        x11colors.thistle = 0xD8BFD8;
+        x11colors.tomato = 0xFF6347;
+        x11colors.wheat = 0xF5DEB3;
+
+        return x11colors[colorName];
+    } // x11color()
+
+
+
+    function makeListOfComponents() {
+
+        const points = [];
+        const n = 1024;
+        const radius = 16.0;
+        //const angularIncrement = 0.04;
+        const zIncrement = 0.0; //0.04
+        //let angle = 0.0;
+        let z = 0.0;
+        for( let i = 0; i < n; i++ ) {
+	    let fraction = (i+1)/n
+	    let angle = fraction * 2 * Math.PI;
+	    let r = radius + 4* Math.cos(5 * angle)
+            let x = r * Math.cos( angle ); // (2 * angle + Math.PI/6)
+            let y = r * Math.sin( angle ); // (3 * angle)
+
+            let v = new THREE.Vector3( x, y, z );
+
+            points.push( v );
+
+            //angle = angle + angularIncrement;
+            //z = z + zIncrement
+        } // for
+
+        let components = [];
+
+        const curve = new THREE.CatmullRomCurve3( points );
+
+/*
+        let geometry = new THREE.BufferGeometry();
+        geometry = geometry.setFromPoints( points );
+
+        const material = new THREE.LineBasicMaterial( {color: x11color("tomato")} );
+
+        const curveObject = new THREE.Line( geometry, material );
+
+        components.push( curveObject );
+*/
+
+        const tubularSegments = 512;
+        const tubeRadius = 2;
+        const radialSegments = 64;
+
+        const tubeGeometry = new THREE.TubeGeometry( curve, tubularSegments,
+          tubeRadius, radialSegments );
+
+        const lambertOptions = {
+          color: x11color("mistyRose"),
+          side: THREE.DoubleSide
+        };
+
+        const lambertMaterial = new THREE.MeshLambertMaterial( lambertOptions );
+
+        const distanceOptions = {
+          color: x11color("lightSeaGreen"),
+          side: THREE.DoubleSide,
+          farDistance: 48,
+          nearDistance: -2
+        };
+
+        const distanceMaterial = new THREE.MeshDistanceMaterial( distanceOptions );
+
+        const physicalOptions = {
+          color: x11color("slateBlue"),
+          side: THREE.DoubleSide,
+          clearcoat: 0.6 
+        };
+
+        const toonOptions = {
+          color: x11color("tomato"),
+          side: THREE.DoubleSide,
+        };
+        const physicalMaterial = new THREE.MeshPhysicalMaterial( physicalOptions );
+
+        //const mesh = new THREE.Mesh( tubeGeometry, physicalMaterial );
+
+	const toonMaterial = new THREE.MeshToonMaterial(toonOptions);
+
+	const mesh = new THREE.Mesh(tubeGeometry, toonMaterial)
+
+        components.push( mesh );
+ 
+        return components;
+    } // makeListOfComponents()
+
+    function assembleByAdding( components ) {
+        figure = new THREE.Group();
+        for( c of components ) {
+            figure.add( c );
+        } // for
+
+        figure.rotation.y = Math.PI;
+
+        return figure;
+    } // assembleByAdding()
+
+    function init() {
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(45,
+            window.innerWidth/window.innerHeight, 0.1, 1000);
+
+        renderer = new THREE.WebGLRenderer();
+        renderer.setClearColor( x11color( "aquamarine" ) );
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        renderer.shadowMapEnabled = true;
+
+        let spotLight = new THREE.SpotLight( 0xFFFFFF );
+        spotLight.position.set( 0, 0, 128 );
+        scene.add( spotLight );
+
+        //let axes = new THREE.AxisHelper(20);
+        //scene.add( axes );
+
+        components = makeListOfComponents();
+
+        figure = assembleByAdding( components );
+        
+        scene.add( figure )
+
+        figure.receiveShadow = true;
+        spotLight.castShadow = true;
+
+        camera.position.x = 0;
+        camera.position.y = 0;
+        camera.position.z = 64;
+        camera.lookAt( scene.position );
+
+        document.getElementById( "WebGL-output").
+            appendChild( renderer.domElement );
+        renderScene( scene, camera );
+    };
+
+    window.onload = init;
+</script>
+
+</html>

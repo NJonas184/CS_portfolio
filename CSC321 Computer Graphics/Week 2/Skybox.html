@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>CSC321 Computer Graphics</title>
+    <style>
+        /*
+          Set margin to 0 and overflow to hidden
+          to get the use of the whole page for our
+          image.
+        */
+        margin: 0;
+        overflow: hidden;
+    </style>
+</head>
+
+<body>
+    <!-- 
+        Here is the part of the page (the 'div') that
+        will hold our picture.
+    -->
+    <div id="WebGL-output">
+    </div>
+</body>
+
+<!-- Here is where we put our code that draws the image. -->
+<script type="module">
+
+    // We are writing that code in JavaScript.
+    import * as THREE from 'https://cdn.skypack.dev/three@0.128.0';
+
+    import {OrbitControls} from 'https://cdn.skypack.dev/three@0.128.0/examples/jsm/controls/OrbitControls.js'
+    let camera;
+    let renderer;
+    let controls;
+    let scene;
+    let cubeCamera;
+    let cubeRenderTarget;
+    let sphere;
+
+    function animate() {
+
+	sphere.visible = false;
+	cubeCamera.position.copy(sphere.position);
+	cubeCamera.update(renderer, scene);
+
+	sphere.visible = true;
+	renderer.render(scene, camera)
+	requestAnimationFrame(animate);
+    }
+
+    function init() {
+
+
+
+	scene = new THREE.Scene();
+	camera = new THREE.PerspectiveCamera(55, window.innerWidth/window.innerHeight, 45, 30000);
+	camera.position.set(-900, -200, -900);
+
+	renderer = new THREE.WebGLRenderer({antialias:true});
+	renderer.setSize(window.innerWidth, window.innerHeight);
+
+        // add the output of the renderer to the html element
+        document.getElementById("WebGL-output").appendChild(renderer.domElement);
+
+	controls = new OrbitControls(camera, renderer.domElement);
+	controls.addEventListener("change", renderer);
+	controls.minDistance = 500;
+	controls.maxDistance = 1500;
+
+	let matArray = [];
+
+	let texture_front = new THREE.TextureLoader().load("Skybox/desertdawn_ft.jpg");
+	let texture_back = new THREE.TextureLoader().load("Skybox/desertdawn_bk.jpg");
+	let texture_top = new THREE.TextureLoader().load("Skybox/desertdawn_up.jpg");
+	let texture_bottom = new THREE.TextureLoader().load("Skybox/desertdawn_dn.jpg");
+	let texture_right = new THREE.TextureLoader().load("Skybox/desertdawn_rt.jpg");
+	let texture_left = new THREE.TextureLoader().load("Skybox/desertdawn_lf.jpg");
+
+	matArray.push(new THREE.MeshBasicMaterial({map: texture_front}));
+	matArray.push(new THREE.MeshBasicMaterial({map: texture_back}));
+	matArray.push(new THREE.MeshBasicMaterial({map: texture_top}));
+	matArray.push(new THREE.MeshBasicMaterial({map: texture_bottom}));
+	matArray.push(new THREE.MeshBasicMaterial({map: texture_right}));
+	matArray.push(new THREE.MeshBasicMaterial({map: texture_left}));
+	
+	for(let i = 0; i < 6; i++){
+	    matArray[i].side = THREE.BackSide;
+	}
+
+	let skyboxGeometry = new THREE.BoxGeometry(10000, 10000, 10000)
+	let skybox = new THREE.Mesh(skyboxGeometry, matArray);
+	scene.add(skybox);
+
+	cubeRenderTarget = new THREE.WebGLCubeRenderTarget( 128, { format: THREE.RGBFormat, generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter } );
+	cubeCamera = new THREE.CubeCamera(1, 100000, cubeRenderTarget);
+	scene.add(cubeCamera);
+
+	let sphereGeometry = new THREE.SphereGeometry(150,150,150);
+	let sphereMaterial = new THREE.MeshBasicMaterial({color: 0xFFFFFF, envMap: cubeRenderTarget.texture})
+	sphere = new THREE.Mesh(sphereGeometry, sphereMaterial)
+	scene.add(sphere);
+
+
+	animate();
+    };
+
+    window.onload = init;
+</script>
+
+</html>

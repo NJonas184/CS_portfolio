@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>CSC321 Computer Graphics</title>
+
+    <!-- Get the JavaScript library from a server on the Internet. -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js">
+    </script>
+
+    <style>
+        /*
+          Set margin to 0 and overflow to hidden
+          to get the use of the whole page for our
+          image.
+        */
+        margin: 0;
+        overflow: hidden;
+    </style>
+</head>
+
+<body>
+    <!-- 
+        Here is the part of the page (the 'div') that
+        will hold our picture.
+    -->
+    <div id="WebGL-output">
+    </div>
+
+</body>
+
+<!-- Here is where we put our code that draws the image. -->
+<script>
+
+    let renderer;
+    let scene;
+    let camera;
+    let figure;
+
+    const palette = {
+        lightSeaGreen: 0x20B2AA,
+        mediumAquamarine: 0x66CDAA,
+        midnightBlue: 0x191970,
+        paleGreen: 0x98FB98,
+        slateBlue: 0x6A5ACD };
+
+    function renderScene() {
+        //figure.rotation.y += 0.004;
+
+        requestAnimationFrame( renderScene );
+        renderer.render( scene, camera )
+    } // renderScene()
+
+    function tree(x, z){
+	let trunkGeometry = new THREE.CylinderGeometry(1, 1, 5, 32)
+	let trunkMaterial = new THREE.MeshPhongMaterial({color: 0xA0522D})
+	let trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+	trunk.position.x = x
+	trunk.position.y = 2.5 + 2
+	trunk.position.z = z
+	scene.add(trunk);
+	
+	//pine/leaves 0
+	let leaves0Geometry = new THREE.CylinderGeometry(0, 5, 4, 6)
+	let leavesMaterial = new THREE.MeshPhongMaterial({color: 0x228B22})
+	let leaves0 = new THREE.Mesh(leaves0Geometry, leavesMaterial);
+	leaves0.position.x = trunk.position.x
+	leaves0.position.y = trunk.position.y + 3
+	leaves0.position.z = trunk.position.z
+	scene.add(leaves0);
+
+	//pine/leaves 1
+	let leaves1Geometry = new THREE.CylinderGeometry(0, 4, 3, 5)
+	let leaves1 = new THREE.Mesh(leaves1Geometry, leavesMaterial);
+	leaves1.position.x = trunk.position.x
+	leaves1.position.y = leaves0.position.y + 2
+	leaves1.position.z = trunk.position.z
+	scene.add(leaves1);
+
+	//pine/leaves 2
+	let leaves2Geometry = new THREE.CylinderGeometry(0, 3, 2, 4)
+	let leaves2 = new THREE.Mesh(leaves2Geometry, leavesMaterial);
+	leaves2.position.x = trunk.position.x
+	leaves2.position.y = leaves1.position.y + 1.5
+	leaves2.position.z = trunk.position.z
+	scene.add(leaves2);
+    }
+
+    function skyscraper(x, z){
+	let texture = new THREE.TextureLoader().load( "greyandblack.jpg" );
+	texture.wrapS = THREE.RepeatWrapping;
+	texture.wrapT = THREE.RepeatWrapping;
+	texture.repeat.set( 1.5, 1.5 );
+
+	height = Math.floor(Math.random() * 8) + 12
+        let buildingGeometry = new THREE.BoxGeometry(9, height, 9)
+	let buildingMaterial = [
+				new THREE.MeshPhongMaterial({map: texture}),
+				new THREE.MeshPhongMaterial({map: texture}),
+				new THREE.MeshPhongMaterial({color: 0xC0C0C0}),
+				new THREE.MeshPhongMaterial({color: 0xC0C0C0}),
+				new THREE.MeshPhongMaterial({map: texture}),
+				new THREE.MeshPhongMaterial({map: texture}),
+				];
+	let building = new THREE.Mesh(buildingGeometry, buildingMaterial)
+	building.position.x = x;
+	building.position.y = (height*0.5) + 2;
+	building.position.z = z;
+	scene.add(building)
+    }
+
+    function berlinTVTower(x, z){
+
+	let cubeRenderTarget = new THREE.WebGLCubeRenderTarget( 128, { format: THREE.RGBFormat, generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter } );
+
+	let cubeCamera = new THREE.CubeCamera( 1, 100000, cubeRenderTarget );
+	scene.add( cubeCamera );
+
+	//pole
+        let poleGeometry = new THREE.CylinderGeometry(0.5, 1, 20, 32);
+	let poleMaterial = new THREE.MeshPhongMaterial({color: 0xC0C0C0})
+	let pole = new THREE.Mesh(poleGeometry, poleMaterial)
+
+	pole.position.x = -5
+	pole.position.y = 5 + 2
+	pole.position.z = 35
+	scene.add(pole);
+
+	//Sphere
+	let sphereGeometry = new THREE.SphereGeometry(3, 32, 32)
+	let sphereMaterial = new THREE.MeshPhongMaterial({color: 0xC0C0C0, envMap: cubeRenderTarget.texture})
+	let sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+	sphere.position.x = pole.position.x;
+	sphere.position.y = pole.position.y + 12.5
+	sphere.position.z = pole.position.z
+	scene.add(sphere);
+
+	//tower on sphere
+	let pillarGeometry = new THREE.CylinderGeometry(1, 1, 2, 32);
+	let pillar = new THREE.Mesh(pillarGeometry, poleMaterial);
+	pillar.position.x = pole.position.x
+	pillar.position.y = sphere.position.y + 3.5
+	pillar.position.z = sphere.position.z;
+	scene.add(pillar);
+
+	let texture = new THREE.TextureLoader().load( "orangeandwhite.png" );
+	texture.wrapS = THREE.RepeatWrapping;
+	texture.wrapT = THREE.RepeatWrapping;
+	texture.repeat.set( 0.75, 0.75 );
+
+	//spike
+	let spikeGeometry = new THREE.CylinderGeometry(0, 0.75, 6, 32);
+	let spikeMaterial = new THREE.MeshPhongMaterial({map:texture})
+	let spike = new THREE.Mesh(spikeGeometry, spikeMaterial)
+	spike.position.x = pole.position.x
+	spike.position.y = pillar.position.y + 3
+	spike.position.z = sphere.position.z;
+	scene.add(spike)
+
+	sphere.visible = false;
+	cubeCamera.position.copy( sphere.position );
+	cubeCamera.update( renderer, scene );
+
+	// Render the scene
+	sphere.visible = true;
+	renderer.render( scene, camera );
+    }
+
+    function factoryRoofGeometry() {
+        let hangarRoof = new THREE.Shape();
+
+        // Clockwise listing of points that will
+        // define the shape---a rectangle whose
+        // top edge is replaced with a Bezier curve
+        let lowerLeft = new THREE.Vector2( -5.0, 0.0 );
+        let upperLeft = new THREE.Vector2( -5.0, 8.0 );
+        let upperRight = new THREE.Vector2( 5.0, 8.0 );
+        let lowerRight = new THREE.Vector2( 5.0, 0.0 );
+	let roofTopRight = new THREE.Vector2(6, 13);
+	let roofTopLeft = new THREE.Vector2(1, 13);
+	
+
+        hangarRoof.moveTo( lowerLeft.x, lowerLeft.y );
+        hangarRoof.lineTo( upperLeft.x, upperLeft.y );
+	
+	hangarRoof.lineTo(1, 8)
+
+	hangarRoof.lineTo(roofTopLeft.x, roofTopLeft.y)
+	hangarRoof.lineTo(roofTopRight.x, roofTopRight.y)
+        hangarRoof.lineTo( upperRight.x, upperRight.y );
+        hangarRoof.lineTo( lowerRight.x, lowerRight.y );
+
+
+        let extrusionOptions = {
+            amount: 0,
+            bevelThickness: 10,
+            bevelSize: 0
+        };
+
+        let result = new THREE.ExtrudeGeometry( hangarRoof, extrusionOptions );
+
+        return result;
+    } // factoryRoofGeometry()
+
+
+    function apartment(x, y, z, rotation){
+	let texture = new THREE.TextureLoader().load( "brick-wall.jpg" );
+	texture.wrapS = THREE.RepeatWrapping;
+	texture.wrapT = THREE.RepeatWrapping;
+	texture.repeat.set( 0.75, 0.75 );
+
+	//foundation
+	let foundationGeometry = new THREE.BoxGeometry(10, 0.5, 10);
+	let foundationMaterial = new THREE.MeshPhongMaterial({color: 0xF5F5DC});
+	let foundation = new THREE.Mesh(foundationGeometry, foundationMaterial);
+	foundation.position.x = x
+	foundation.position.y = y + 0.5
+	foundation.position.z = z
+	foundation.rotateY(THREE.Math.degToRad(rotation));
+	scene.add(foundation);
+	
+	//building
+	let height = Math.floor(Math.random() * 5) + 8
+	let buildingGeometry = new THREE.BoxGeometry(9, height, 9);
+	let buildingMaterial = new THREE.MeshLambertMaterial({map:texture});
+	//let buildingMaterial = new THREE.MeshLambertMaterial({color: 0xFF0000})
+	let building = new THREE.Mesh(buildingGeometry, buildingMaterial);
+	building.position.x = foundation.position.x;
+	building.position.y = foundation.position.y + (height*0.5);
+	building.position.z = foundation.position.z;
+	scene.add(building);
+	
+	//roof
+	let roof = new THREE.Mesh(foundationGeometry, foundationMaterial)
+	roof.position.x = building.position.x
+	roof.position.y = building.position.y + (height*0.5);
+	roof.position.z = building.position.z
+	scene.add(roof);
+
+	//door
+	let doorGeometry = new THREE.BoxGeometry(0.5, 3, 2);
+	let doorMaterial = new THREE.MeshPhongMaterial({color: 0xA9A9A9});
+	let door = new THREE.Mesh(doorGeometry, doorMaterial);
+
+	if(rotation == 0){
+	    door.position.x = foundation.position.x - 4.5
+	    door.position.y = foundation.position.y + 1.5
+	    door.position.z = foundation.position.z
+	} else if(rotation == 1){
+	    door.position.x = foundation.position.x
+	    door.position.y = foundation.position.y + 1.5
+	    door.position.z = foundation.position.z + 4.5
+	    door.rotateY(THREE.Math.degToRad(90));
+	}
+	scene.add(door)
+
+    }
+
+    function extrusionGeometry( specs ) {
+        let crossSection = new THREE.Shape();
+
+        const xMin = specs.xMin;
+        const xMax = specs.xMax;
+
+        const xRange = xMax - xMin;
+
+        const yMin = specs.yMin;
+        const yMax = specs.yMax;
+
+        const yRange = yMax - yMin;
+
+        const m0 = specs.m0;
+        const m1 = specs.m1;
+
+        // Clockwise listing of points that will
+        // define the shape---a rectangle whose
+        // top edge is replaced with a Bezier curve
+        let lowerLeft = new THREE.Vector2( xMin, yMin );
+        let upperLeft = new THREE.Vector2( xMin, yMax );
+        let controlLeft = new THREE.Vector2( xMin + xRange/4, yMax + m0 * yRange );
+        let controlRight = new THREE.Vector2( xMin + 3 * xRange/4, yMax + m1 * yRange );
+        let upperRight = new THREE.Vector2( xMax, yMax );
+        let lowerRight = new THREE.Vector2( xMax, yMin );
+
+        crossSection.moveTo( lowerLeft.x, lowerLeft.y );
+        crossSection.lineTo( upperLeft.x, upperLeft.y );
+
+        //hangarRoof.lineTo( upperRight.x, upperRight.y );
+
+        crossSection.bezierCurveTo( 
+            controlLeft.x, controlLeft.y,
+            controlRight.x, controlRight.y,
+            upperRight.x, upperRight.y );
+
+
+        crossSection.lineTo( lowerRight.x, lowerRight.y );
+
+        let extrusionOptions = {
+            amount: specs.thickness,
+            bevelThickness: 0,
+            bevelSize: 0,
+            curveSegments: 64
+        };
+
+        let result = new THREE.ExtrudeGeometry( crossSection, extrusionOptions );
+
+        return result;
+    } // extrusionGeometry()
+
+    function makeListOfComponentsLandscape() {
+        let components = [];
+
+        // layer #0
+
+        let groundMaterial = new THREE.MeshLambertMaterial(
+            {color: palette.paleGreen} );
+	
+	let concreteMaterial = new THREE.MeshLambertMaterial({color: 0x696969})
+
+        let waterMaterial = new THREE.MeshPhongMaterial(
+            {color: palette.slateBlue} );
+
+	let roadMaterial = new THREE.MeshLambertMaterial({color: 0xC0C0C0})
+
+        let specs = {
+            xMin: -50.0,
+            xMax: 50.0,
+            yMin: -50.0,
+            yMax: 50.0,
+            m0: 0.0,
+            m1: 0.0,
+            thickness: 0.5
+        };
+
+	//Water
+
+        let groundGeometry = extrusionGeometry( specs );
+        let ground = new THREE.Mesh( groundGeometry, waterMaterial );
+
+        ground.rotation.x = Math.PI/2;
+        ground.rotation.z = -Math.PI/2;
+        ground.position.y = 1;
+
+        components.push( ground );
+
+        //ground part 1
+
+        specs.yMax = 5.0;
+        specs.m0 = 0.8;
+        specs.m1 = -0.4;
+
+        groundGeometry = extrusionGeometry( specs );
+        ground = new THREE.Mesh( groundGeometry, groundMaterial );
+
+        ground.rotation.x = Math.PI/2;
+        ground.rotation.z = -Math.PI/2;
+        ground.position.y = 1 + specs.thickness;
+
+        components.push( ground );
+
+        // ground part 2
+
+        specs.yMax = 60.0;
+	specs.yMin = 35;
+	specs.xMax = 50
+	specs.xMin = -50
+        specs.m0 = 1.5;
+        specs.m1 = -1.4;
+
+        groundGeometry = extrusionGeometry( specs );
+        ground = new THREE.Mesh( groundGeometry, groundMaterial );
+
+        ground.rotation.x = Math.PI/2;
+        ground.rotation.z = Math.PI/2;
+	ground.position.x = ground.position.x + 85
+        ground.position.y = 1 + 2* specs.thickness;
+	
+	
+	components.push( ground );
+
+	//concrete part 1
+        specs.yMax = 3.0;
+	specs.yMin = -50;
+	specs.xMax = 50
+        specs.m0 = 0.8;
+        specs.m1 = -0.4;
+
+        groundGeometry = extrusionGeometry( specs );
+        ground = new THREE.Mesh( groundGeometry, concreteMaterial );
+
+        ground.rotation.x = Math.PI/2;
+        ground.rotation.z = -Math.PI/2;
+        ground.position.y = 1 + 2 * specs.thickness;
+
+        components.push( ground );
+
+	//road1
+        specs.yMax = 50.0;
+	specs.yMin = -50;
+	specs.xMax = 10;
+	specs.xMin = 0;
+        specs.m0 = 0;
+        specs.m1 = 0;
+	specs.thickness = 0.75;
+
+        groundGeometry = extrusionGeometry( specs );
+        ground = new THREE.Mesh( groundGeometry, roadMaterial );
+
+        ground.rotation.x = Math.PI/2;
+        ground.rotation.z = -Math.PI/2;
+	ground.position.z = ground.position.z + 30
+        ground.position.y = 1 + 2 * specs.thickness;
+
+        components.push( ground );
+
+	//road2
+        specs.yMax = 10.0;
+	specs.yMin = 0;
+	specs.xMax = 50;
+	specs.xMin = -50;
+        specs.m0 = 0;
+        specs.m1 = 0;
+	specs.thickness = 0.75;
+
+        groundGeometry = extrusionGeometry( specs );
+        ground = new THREE.Mesh( groundGeometry, roadMaterial );
+
+        ground.rotation.x = Math.PI/2;
+        ground.rotation.z = -Math.PI/2;
+	ground.position.x = ground.position.x -25
+        ground.position.y = 1 + 2 * specs.thickness;
+
+        components.push( ground );
+       
+        return components;
+    } // makeListOfComponentsLandscape()
+    function makeListOfComponentsFactory(x, z) {
+	let texture = new THREE.TextureLoader().load( "brick-wall.jpg" );
+	texture.wrapS = THREE.RepeatWrapping;
+	texture.wrapT = THREE.RepeatWrapping;
+	texture.repeat.set( 4, 4 );
+
+
+        //let cubeMaterial = new THREE.MeshPhongMaterial(
+        //    {color: 0xAAAAAA, wireframe: false} );
+
+        let factoryGeometry = factoryRoofGeometry();
+
+        let factoryMaterial = new THREE.MeshPhongMaterial(
+            {map:texture} );
+        let factory = new THREE.Mesh( factoryGeometry, factoryMaterial );
+	factory.rotateY(THREE.Math.degToRad(90));
+	factory.position.x = x;
+        factory.position.y = 2;
+	factory.position.z = z;
+
+        let components = [];
+        components.push( factory );
+
+        return components;
+    } // makeListOfComponentsFactory()
+
+    function factory(x, z){
+	let components = makeListOfComponentsFactory(x, z);
+     
+        factory = assembleByAdding( components );
+        //figure = assembleByMerging( components );
+
+	
+
+        scene.add( factory );
+	factory.castShadow = true;
+
+	let cylinderGeometry = new THREE.CylinderGeometry(0.6, 1, 10, 8);
+	let cylinderMaterial = new THREE.MeshPhongMaterial({color: 0xCCCCCC});
+	
+	let cylinder1 = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
+	cylinder1.position.x= x+8;
+	cylinder1.position.y = 15;
+	cylinder1.position.z = z+1;
+	scene.add(cylinder1);
+
+	let cylinder2 = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
+	cylinder2.position.x= x-8;
+	cylinder2.position.y = 15;
+	cylinder2.position.z = z+1
+	scene.add(cylinder2);
+
+	let cylinder3 = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
+	cylinder3.position.x= x;
+	cylinder3.position.y = 15;
+	cylinder3.position.z = z+1
+	scene.add(cylinder3);
+
+    }
+
+    function assembleByAdding( components ) {
+        figure = new THREE.Object3D();
+        for( c of components ) {
+            figure.add( c );
+        } // for
+        return figure;
+    } // assembleByAdding()
+
+    function assembleByMerging( components ) {
+        let assembly = new THREE.Geometry();
+
+        for( c of components ) {
+            c.updateMatrix();
+            assembly.merge( c.geometry, c.matrix );
+        } // for
+
+        figure = new THREE.Mesh( assembly, components[0].material );
+
+        return figure;
+    } // assembleByMergin()
+
+    function init() {
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(45,
+            window.innerWidth/window.innerHeight, 0.1, 1000);
+
+        renderer = new THREE.WebGLRenderer();
+        renderer.setClearColor( 0x00BFFF );
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        renderer.shadowMap.enabled = true;
+
+        let spotLight = new THREE.SpotLight( 0xFFFFFF );
+        spotLight.position.set( 40, 60, 50 );
+
+        scene.add( spotLight );
+
+        let components = makeListOfComponentsLandscape();
+     
+        figure = assembleByAdding( components );
+        //figure = assembleByMerging( components );
+
+        scene.add( figure );
+
+	for(let i = 0; i < 6; i++){
+            let z = 15 - (i*12)
+	    apartment(-10, 2, z, 0)
+	}
+
+	for(let i = 0; i < 3; i++){
+	    let z = 15 - (i*12)
+	    apartment(0, 2, z, 1)
+	}
+
+	apartment(10, 2, 15, 1)
+
+	factory(-40, 40);
+
+	berlinTVTower(60, 60)
+	
+	for(let i = 0; i < 6; i++){
+	    let z = -40 + (i*11)
+	    for(let j = 0; j < 2; j++){
+		let x = -45 + (j*12)
+		skyscraper(x, z)
+	    }
+	}
+	for(let i = 0; i < 6; i++){
+	    let z = -40 + (i*10);
+	    if (i < 4) {
+		for(let j = 0; j < 3; j++){
+		    let x = 25 + (j*10)
+		    let newz = z + (Math.ceil(Math.random() * 1.5) * (Math.round(Math.random()) ? 1 : -1))
+		    let newx = x + (Math.ceil(Math.random() * 1.5) * (Math.round(Math.random()) ? 1 : -1))
+		    tree(newx, newz);
+		}
+	    } else {
+		for(let k = 0; k < 2; k++){
+		    let x = 35 + (k*10)
+		    let newz = z + (Math.ceil(Math.random() * 1.5) * (Math.round(Math.random()) ? 1 : -1))
+		    let newx = x + (Math.ceil(Math.random() * 1.5) * (Math.round(Math.random()) ? 1 : -1))
+		    tree(newx, newz);
+	    	}
+	    }
+	}
+	for(let i = 0; i < 2; i++){
+	    let z = 35 + (i*10);
+	    for(let j = 0; j < 2; j++){
+		let x = 37 + (j*10)
+		let newz = z + (Math.ceil(Math.random() * 1) * (Math.round(Math.random()) ? 1 : -1))
+		let newx = x + (Math.ceil(Math.random() * 1) * (Math.round(Math.random()) ? 1 : -1))
+		tree(newx, newz)
+	    }
+	}
+
+        figure.castShow = true;
+        spotLight.castShadow = true;
+
+        //plane.receiveShadow = true;
+
+        camera.position.x = 52; // 52
+        camera.position.y = 60;
+        camera.position.z = 80; //-80
+        camera.lookAt( scene.position );
+
+        document.getElementById( "WebGL-output").
+            appendChild( renderer.domElement );
+        //renderer.render( scene, camera );
+        renderScene();
+    }; // init()
+
+    window.onload = init;
+</script>
+
+</html>

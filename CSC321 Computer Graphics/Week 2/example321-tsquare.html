@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>CSC321 Computer Graphics</title>
+
+    <!-- Get the JavaScript library from a server on the Internet. -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r83/three.min.js">
+    </script>
+
+    <style>
+        /*
+          Set margin to 0 and overflow to hidden
+          to get the use of the whole page for our
+          image.
+        */
+        margin: 0;
+        overflow: hidden;
+    </style>
+</head>
+
+<body>
+    <!-- 
+        Here is the part of the page (the 'div') that
+        will hold our picture.
+    -->
+    <div id="WebGL-output">
+    </div>
+</body>
+
+<!-- Here is where we put our code that draws the image. -->
+<script>
+
+    // TO-DO: Write a program that draws a fractal.
+    // Refer to this example for guidance.
+    // You might...
+    //    * draw the Sierpinski Gasket
+    //    * draw the Sierpinski Pyramid
+    //    * draw the Koch Snowflake
+    //    * draw the Menger Sponge
+    //    * or draw some other fractal image
+
+    let renderer;
+    let scene;
+    let camera;
+    let figure;
+
+    function renderScene() {
+        // TO-DO: Experiment with rotations at different
+        // speeds and around different axes.
+        //figure.rotation.y += 0.02;
+
+        requestAnimationFrame( renderScene );
+        renderer.render( scene, camera )
+    } // renderScene()
+
+    function x11color( colorName ) {
+        // TO-DO: Edit this collection of colors.
+        x11colors = { };
+        x11colors.aquamarine = 0x7FFFD4;
+        x11colors.lightGoldenrod = 0xFAFAD2;
+        x11colors.lightSeaGreen = 0x20B2AA;
+        x11colors.mediumAquamarine = 0x66CDAA;
+        x11colors.midnightBlue = 0x191970;
+        x11colors.mistyRose = 0xFFE4E1;
+        x11colors.paleGreen = 0x98FB98;
+        x11colors.slateBlue = 0x6A5ACD;
+        x11colors.thistle = 0xD8BFD8;
+        x11colors.tomato = 0xFF6347;
+        x11colors.wheat = 0xF5DEB3;
+
+        return x11colors[colorName];
+    } // x11color()
+
+    // TO-DO: Maybe a function that produces an array
+    // of colors will be useful? Maybe a shuffled array?
+
+    function makeSquares( center, width, thickness, level, materials, listOfSquares ) {
+        if( width > 1 ) {
+
+            // TO-DO: Try drawing something other than boxes. Cylinders? Spheres? Tori?
+            const squareGeometry = new THREE.BoxGeometry(width/2, width/2, thickness);
+            const square = new THREE.Mesh( squareGeometry, materials[level] );
+
+            // TO-DO: Try make the orientation of the squares
+            // dependent about their level. Maybe a rotation by pi/4 radians?
+            square.position.x = center.x;
+            square.position.y = center.y;
+
+            // TO-DO: You might trying varying the spacing
+            // between successive layers in this drawing.
+            square.position.z = level * thickness;
+
+            listOfSquares.push( square );
+
+            const neCenter = new THREE.Vector2(center.x + width/4, center.y + width/4);
+            const nwCenter = new THREE.Vector2(center.x - width/4, center.y + width/4);
+            const swCenter = new THREE.Vector2(center.x - width/4, center.y - width/4);
+            const seCenter = new THREE.Vector2(center.x + width/4, center.y - width/4);
+
+            makeSquares( neCenter, width/2, thickness, level + 1, materials, listOfSquares );
+            makeSquares( nwCenter, width/2, thickness, level + 1, materials, listOfSquares );
+            makeSquares( swCenter, width/2, thickness, level + 1, materials, listOfSquares );
+            makeSquares( seCenter, width/2, thickness, level + 1, materials, listOfSquares );
+            
+        } // if
+    } // makeSquares()
+
+    function makeListOfComponents() {
+        let components = [];
+
+        let materials = []
+        materials.push( new THREE.MeshLambertMaterial({color: x11color( "lightGoldenrod" )}));
+        materials.push( new THREE.MeshLambertMaterial({color: x11color( "lightSeaGreen" )}));
+        materials.push( new THREE.MeshLambertMaterial({color: x11color( "mediumAquamarine" )}));
+        materials.push( new THREE.MeshLambertMaterial({color: x11color( "midnightBlue" )}));
+        materials.push( new THREE.MeshLambertMaterial({color: x11color( "mistyRose" )}));
+        materials.push( new THREE.MeshLambertMaterial({color: x11color( "paleGreen" )}));
+        materials.push( new THREE.MeshLambertMaterial({color: x11color( "slateBlue" )}));
+        materials.push( new THREE.MeshLambertMaterial({color: x11color( "thistle" )}));
+        materials.push( new THREE.MeshLambertMaterial({color: x11color( "tomato" )}));
+        materials.push( new THREE.MeshLambertMaterial({color: x11color( "wheat" )}));
+
+        let center = new THREE.Vector2( 0.0, 0.0 );
+        let width = 64;
+
+        // TO-DO: Try different values for thickness.
+        let thickness = 2;
+        let level = 0;
+
+        makeSquares( center, width, thickness, level, materials, components );
+
+        return components;
+    } // makeListOfComponents()
+
+    function assembleByAdding( components ) {
+        figure = new THREE.Group();
+        for( c of components ) {
+            figure.add( c );
+        } // for
+
+        figure.rotation.y = Math.PI;
+
+        return figure;
+    } // assembleByAdding()
+
+    function init() {
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(45,
+            window.innerWidth/window.innerHeight, 0.1, 1000);
+
+        renderer = new THREE.WebGLRenderer();
+        renderer.setClearColor( x11color( "aquamarine" ) );
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        renderer.shadowMapEnabled = true;
+
+        let spotLight = new THREE.SpotLight( 0xFFFFFF );
+        spotLight.position.set( 0, 0, 128 );
+        scene.add( spotLight );
+
+        //let axes = new THREE.AxisHelper(20);
+        //scene.add( axes );
+
+        components = makeListOfComponents();
+
+        figure = assembleByAdding( components );
+        
+        scene.add( figure )
+
+        figure.receiveShadow = true;
+        spotLight.castShadow = true;
+
+        camera.position.x = 0;
+        camera.position.y = 0;
+        camera.position.z = 64;
+        camera.lookAt( scene.position );
+
+        document.getElementById( "WebGL-output").
+            appendChild( renderer.domElement );
+        renderScene( scene, camera );
+    };
+
+    window.onload = init;
+</script>
+
+</html>

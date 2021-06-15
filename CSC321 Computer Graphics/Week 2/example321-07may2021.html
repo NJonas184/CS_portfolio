@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>CSC321 Computer Graphics</title>
+
+    <!-- Get the JavaScript library from a server on the Internet. -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js">
+    </script>
+
+    <style>
+        /*
+          Set margin to 0 and overflow to hidden
+          to get the use of the whole page for our
+          image.
+        */
+        margin: 0;
+        overflow: hidden;
+    </style>
+</head>
+
+<body>
+    <!-- 
+        Here is the part of the page (the 'div') that
+        will hold our picture.
+    -->
+    <div id="WebGL-output">
+    </div>
+</body>
+
+<!-- Here is where we put our code that draws the image. -->
+<script>
+
+    let renderer;
+    let scene;
+    let camera;
+    let figure;
+
+    function renderScene() {
+        // TO-DO: Experiment with different speeds of
+        // rotation, with different axes of rotation,
+        // and maybe with some translation.
+        // For example, maybe you could make the figure
+        // begin at a great distance from the viewer and
+        // move closer to the viewer. When the object gets
+        // very close, reset the position to put it far away
+        // again.
+
+        figure.rotation.y += 0.002;
+        figure.rotation.x += 0.004;
+
+        requestAnimationFrame( renderScene );
+        renderer.render( scene, camera )
+    } // renderScene()
+
+    function x11color( colorName ) {
+        x11colors = { };
+        x11colors.aquamarine = 0x7FFFD4;
+        x11colors.lightGoldenrod = 0xFAFAD2;
+        x11colors.lightSeaGreen = 0x20B2AA;
+        x11colors.mediumAquamarine = 0x66CDAA;
+        x11colors.midnightBlue = 0x191970;
+        x11colors.mistyRose = 0xFFE4E1;
+        x11colors.paleGreen = 0x98FB98;
+        x11colors.slateBlue = 0x6A5ACD;
+        x11colors.thistle = 0xD8BFD8;
+        x11colors.tomato = 0xFF6347;
+        x11colors.wheat = 0xF5DEB3;
+
+        return x11colors[colorName];
+    } // x11color()
+
+    function makeTriangle( v0, v1, v2, divisible ) {
+        const result = {};
+
+        result.v0 = v0;
+        result.v1 = v1;
+        result.v2 = v2;
+
+        const edge01 = v1.clone().sub( v0 );
+        const edge12 = v2.clone().sub( v1 );
+        const edge20 = v0.clone().sub( v2 );
+
+        result.size = Math.min(
+            edge01.length(),
+            edge12.length(),
+            edge20.length() );
+
+        result.divisible = divisible;
+
+        return result;
+    } // makeTriangle()
+
+    function subdivideTriangle( triangle ) {
+        const result = [];
+
+        const v0 = triangle.v0;
+        const v1 = triangle.v1;
+        const v2 = triangle.v2;
+
+        const v01 = v0.clone().add(v1);
+        const v12 = v1.clone().add(v2);
+        const v20 = v2.clone().add(v0);
+
+
+        v01.divideScalar( v01.length() );
+        v12.divideScalar( v12.length() );
+        v20.divideScalar( v20.length() );
+
+        result.push( makeTriangle(v0, v01, v20, true) );
+        result.push( makeTriangle(v01, v1, v12, true) );
+        result.push( makeTriangle(v20, v12, v2, true) );
+        result.push( makeTriangle(v20, v01, v12, false) );
+
+        return result;
+    } // subdivideTriangle()
+
+    function recurse( listOfTriangles, threshold ) {
+        let result = [];
+
+        //const reducer = function(a,b) { return Math.max(a,b); };
+        //const maxSize = listOfTriangles.map( t => t.size ).reduce(reducer);
+
+        let moreToDo = false;
+
+        for( t of listOfTriangles ) {
+            if( t.size > threshold ) {
+                moreToDo = true;
+		console.log("true");
+                result = result.concat( subdivideTriangle(t) );
+            } // if
+            else {
+                result.push( t )
+            } // else
+        } // for
+            
+        if( moreToDo ) {
+            return recurse( result, threshold );
+        } // if
+        else {
+            return listOfTriangles;
+        } // else
+    } // recurse()
+
+    function finishTriangle( triangle, radius, material ) {
+        const v0 = triangle.v0;
+        const v1 = triangle.v1;
+        const v2 = triangle.v2;
+
+
+
+        const vertices = [];
+        vertices.push( v0 );
+        vertices.push( v1 );
+        vertices.push( v2 );
+
+        const points = [];
+        points.push( v0.x );
+        points.push( v0.y );
+        points.push( v0.z );
+
+        points.push( v1.x );
+        points.push( v1.y );
+        points.push( v1.z );
+
+        points.push( v2.x );
+        points.push( v2.y );
+        points.push( v2.z );
+
+        const faces = [0, 1, 2];
+
+        const triangleGeometry = 
+            new THREE.PolyhedronGeometry( points, faces, radius );
+
+        return triangle = new THREE.Mesh( triangleGeometry, material );
+    } // finishTriangle()
+
+    function makeCube() {
+        // TO-DO: Imitate what you see in the makeOctahedron() function
+        // to complete the definition of this function.
+        // You will need to define 8 vertices and 12 triangles
+        // (2 triangles for each of the cube's 6 square faces).
+
+	const v0 = new THREE.Vector3(-1,-1,-1);
+	const v1 = new THREE.Vector3(1,-1,-1);
+	const v2 = new THREE.Vector3(1,1,-1);
+	const v3 = new THREE.Vector3(-1,1,-1);
+	const v4 = new THREE.Vector3(-1,-1,1);
+	const v5 = new THREE.Vector3(1,-1,1);
+	const v6 = new THREE.Vector3(1,1,1);
+	const v7 = new THREE.Vector3(-1,1,1);
+
+        let triangles = [];
+	//Top
+	triangles.push(makeTriangle(v6, v7, v2, true));
+	triangles.push(makeTriangle(v2, v7, v3, true));
+	
+	//Front
+	triangles.push(makeTriangle(v3, v0, v1, true));
+	triangles.push(makeTriangle(v1, v2, v3, true));
+	
+	//Left
+	triangles.push(makeTriangle(v3, v7, v0, true));
+	triangles.push(makeTriangle(v0, v7, v4, true));
+
+	//Bottom
+	triangles.push(makeTriangle(v4, v1, v0, true));
+	triangles.push(makeTriangle(v4, v5, v1, true));
+
+	//Right
+	triangles.push(makeTriangle(v1, v5, v2, true));
+	triangles.push(makeTriangle(v2, v5, v6, true));
+
+	//Back
+	triangles.push(makeTriangle(v6, v7, v5, true));
+	triangles.push(makeTriangle(v5, v4, v7, true));
+
+        return triangles;
+    } // makeCube()
+
+    function makeOctahedron() {
+        // top of the octahedron
+        const v0 = new THREE.Vector3( 0, 0, 1 );
+
+        // looking at the octahedron from above,
+        // a counterclockwise listing of points
+        // evenly spaced around the equator
+        const v1 = new THREE.Vector3( 1, 0, 0 );
+        const v2 = new THREE.Vector3( 0, 1, 0 );
+        const v3 = new THREE.Vector3( -1, 0, 0 );
+        const v4 = new THREE.Vector3( 0, -1, 0 );
+
+        // bottom of the octahedron
+        const v5 = new THREE.Vector3( 0, 0, -1 );
+
+        const triangles = [];
+        triangles.push( makeTriangle( v0, v1, v2, true) );
+        triangles.push( makeTriangle( v0, v2, v3, true) );
+        triangles.push( makeTriangle( v0, v3, v4, true) );
+        triangles.push( makeTriangle( v0, v4, v1, true) );
+
+        triangles.push( makeTriangle( v5, v2, v1, true) );
+        triangles.push( makeTriangle( v5, v3, v2, true) );
+        triangles.push( makeTriangle( v5, v4, v3, true) );
+        triangles.push( makeTriangle( v5, v1, v4, true) );
+
+        return triangles;
+    } // makeOctahedron()
+
+    function makeListOfComponents() {
+        const radius = 20;
+
+        // TO-DO: Hide this next statement in a commment
+        // after you have defined the makeCube() function.
+        //let triangles = makeOctahedron();
+        // TO-DO: Then uncover this next statement.
+        let triangles = makeCube();
+
+        // TO-DO: Experiment with different materials and
+        // different options for the materials. For example,
+        // you might try MeshPhysicalMaterial or MeshToonMaterial.
+
+        const aMaterialOptions = {
+            color: x11color("wheat"),
+            side: THREE.DoubleSide,
+            wireframe: false
+        };
+
+        const aMaterial = 
+            new THREE.MeshPhongMaterial( aMaterialOptions );
+
+        const bMaterialOptions = {
+            color: x11color("lightSeaGreen"),
+            side: THREE.DoubleSide,
+            wireframe: false
+        };
+
+        const bMaterial = 
+            new THREE.MeshPhongMaterial( bMaterialOptions );
+
+        // TO-DO: Experiment with smaller values of threshold.
+        const threshold = 2.0;
+        triangles = recurse( triangles, threshold );
+
+        let components = [];
+
+        for( t of triangles ) {
+            let triangleMaterial = t.divisible ? aMaterial : bMaterial;
+            components.push( finishTriangle( t, radius, triangleMaterial ));
+        } // for
+ 
+        return components;
+    } // makeListOfComponents()
+
+    function assembleByAdding( components ) {
+        figure = new THREE.Group();
+        for( c of components ) {
+            figure.add( c );
+        } // for
+
+        return figure;
+    } // assembleByAdding()
+
+    function init() {
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(45,
+            window.innerWidth/window.innerHeight, 0.1, 1000);
+
+        renderer = new THREE.WebGLRenderer();
+        renderer.setClearColor( x11color( "midnightBlue" ) );
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        renderer.shadowMapEnabled = true;
+
+        let spotLight = new THREE.SpotLight( 0xFFFFFF );
+        // TO-DO: Move the light off of the z axis.
+        spotLight.position.set( 0, 0, 128 );
+        scene.add( spotLight );
+
+        // TO-DO: Experiment with the addition of one or more
+        // lights. Try adding some ambient light to the scene.
+
+        components = makeListOfComponents();
+
+        figure = assembleByAdding( components );
+
+        // TO-DO: If you want to place the figure farther
+        // back on the z axis (farther from the viewer),
+        // do so here.
+        
+        scene.add( figure )
+
+        figure.receiveShadow = true;
+        spotLight.castShadow = true;
+
+        camera.position.x = 0;
+        camera.position.y = 0;
+        camera.position.z = 64;
+        camera.lookAt( scene.position );
+
+        document.getElementById( "WebGL-output").
+            appendChild( renderer.domElement );
+        renderScene( scene, camera );
+    };
+
+    window.onload = init;
+</script>
+
+</html>

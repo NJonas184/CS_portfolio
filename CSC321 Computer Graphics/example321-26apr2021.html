@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>CSC321 Computer Graphics</title>
+    <!-- Change the path. Your copy of three.js is not my folder. -->
+
+    <!--
+    <script type="module">
+        import * as THREE from 'https://cdn.skypack.dev/three@0.128.0';
+    </script>
+    -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r83/three.min.js"></script>
+    <script src="js/stats.js"></script>
+    <style>
+        /*
+          Set margin to 0 and overflow to hidden
+          to get the use of the whole page for our
+          image.
+        */
+        margin: 0;
+        overflow: hidden;
+    </style>
+</head>
+
+<body>
+    <!-- 
+        Here is the part of the page (the 'div') that
+        will hold our picture.
+    -->
+    <div id="WebGL-output">
+    </div>
+
+    <div id="Stats-output"></div>
+</body>
+
+<!-- Here is where we put our code that draws the image. -->
+<script>
+
+    var renderer;
+    var scene;
+    var camera;
+    var stats;
+    var figure;
+
+    function renderScene() {
+        stats.update();
+
+        figure.rotation.y += 0.01;
+
+        requestAnimationFrame( renderScene );
+        renderer.render( scene, camera )
+    } // renderScene()
+
+    function initStats() {
+        let stats = new Stats();
+        stats.setMode( 0 );
+        stats.domElement.style.position = 'absolute';
+        stats.domElement.style.left = '0px';
+        stats.domElement.style.top = '0px';
+        document.getElementById( "Stats-output" )
+            .appendChild( stats.domElement );
+        return stats;
+    } // initStats()
+
+    function polyhedronRoofGeometry() {
+        let frontTop = {x:0, y:2, z:2}; 
+        let frontLowerLeft = {x:-2, y:0, z:2}; 
+        let frontLowerRight = {x:2, y:0, z:2}; 
+
+        let backTop = {x:0, y:2, z:-2}; 
+        let backLowerLeft = {x:2, y:0, z:-2}; 
+        let backLowerRight = {x:-2, y:0, z:-2};
+
+        let vertices = [];
+ 
+        // frontTop is vertex 0
+        vertices.push( frontTop.x );
+        vertices.push( frontTop.y );
+        vertices.push( frontTop.z );
+
+        // frontLowerLeft is vertex 1
+        vertices.push( frontLowerLeft.x );
+        vertices.push( frontLowerLeft.y );
+        vertices.push( frontLowerLeft.z );
+
+        // frontLowerRight is vertex 2
+        vertices.push( frontLowerRight.x );
+        vertices.push( frontLowerRight.y );
+        vertices.push( frontLowerRight.z );
+
+        // backTop is vertex 3
+        vertices.push( backTop.x );
+        vertices.push( backTop.y );
+        vertices.push( backTop.z );
+
+        // backLowerLeft is vertex 4
+        vertices.push( backLowerLeft.x );
+        vertices.push( backLowerLeft.y );
+        vertices.push( backLowerLeft.z );
+
+        // backLowerRight is vertex 5
+        vertices.push( backLowerRight.x );
+        vertices.push( backLowerRight.y );
+        vertices.push( backLowerRight.z );
+
+
+        let indices = [];
+        
+        // front
+        indices.push( 0 );
+        indices.push( 1 );
+        indices.push( 2 );
+
+        // back
+        indices.push( 3 );
+        indices.push( 4 );
+        indices.push( 5 );
+
+        // left
+        //    frontTop
+        //    frontLowerLeft
+        //    backLowerRight
+        //    backTop
+
+        indices.push( 0 );
+        indices.push( 5 );
+        indices.push( 1 );
+
+        indices.push( 0 );
+        indices.push( 3 );
+        indices.push( 5 );
+
+
+        // right
+        //    frontTop
+        //    frontLowerRight
+        //    backLowerLeft
+        //    backTop
+
+        indices.push( 0 );
+        indices.push( 2 );
+        indices.push( 4 );
+
+        indices.push( 0 );
+        indices.push( 4 );
+        indices.push( 3 );
+
+	//bottom
+	//    frontLowerLeft 1
+	//    backLowerRight 5
+	//    backLowerLeft 4
+	//    frontLowerRight 2
+
+	indices.push(1);
+	indices.push(5);
+	indices.push(2);
+
+	indices.push(2);
+	indices.push(4);
+	indices.push(5);
+	
+
+        let roofGeometry = new THREE.PolyhedronGeometry( vertices, indices, 
+            12 );
+
+        return roofGeometry;
+    } // polyhedronRoofGeometry()
+
+    function extrusionRoofGeometry() {
+        let triangle = new THREE.Shape();
+
+        let top = {x:0, y:6}; 
+        let lowerLeft = {x:-6, y:0}; 
+        let lowerRight = {x:6, y:0}; 
+
+        triangle.moveTo( top.x, top.y );
+        triangle.lineTo( lowerLeft.x, lowerLeft.y );
+        triangle.lineTo( lowerRight.x, lowerRight.y );
+	//Is this next line necessary?
+	//Try
+        triangle.lineTo( top.x, top.y );
+
+        let triangleGeometry = new THREE.ShapeGeometry( triangle );
+
+
+        let extrusionOptions = {
+            amount: 0,
+            bevelThickness: 6,
+            bevelSize: 0
+        };
+
+        let result = new THREE.ExtrudeGeometry( triangle, extrusionOptions );
+
+        return result;
+    } // extrusionRoofGeometry()
+
+    function makeListOfComponents() {
+        let cubeGeometry = new THREE.BoxGeometry( 16, 1, 16 );
+        let cubeMaterial = new THREE.MeshPhongMaterial(
+            {color: 0xAAAAAA, wireframe: false} );
+        let foundation0 = new THREE.Mesh( cubeGeometry, cubeMaterial );
+
+        cubeGeometry = new THREE.BoxGeometry( 14, 1, 14 );
+        let foundation1 = new THREE.Mesh( cubeGeometry, cubeMaterial );
+
+        foundation1.position.y = 1;
+
+        let texture = THREE.ImageUtils.loadTexture( "stonewall.jpg" );
+        let phongMaterial = new THREE.MeshPhongMaterial( {map:texture} );
+        //phongMaterial.map = texture;
+ 
+
+        cubeGeometry = new THREE.BoxGeometry( 12, 10, 12 );
+        cubeMaterial = new THREE.MeshPhongMaterial(
+            {color: 0xE077FF, wireframe: false} );
+        let house = new THREE.Mesh( cubeGeometry, cubeMaterial );
+
+        house.position.y = 2;
+        //let roofGeometry = polyhedronRoofGeometry();
+        let roofGeometry = extrusionRoofGeometry();
+
+        let roofMaterial = new THREE.MeshPhongMaterial(
+            {color: 0xE077FF, wireframe: false} );
+        let roof = new THREE.Mesh( roofGeometry, roofMaterial );
+
+        roof.position.y = 7;
+
+        let components = [];
+        components.push( foundation0 );
+        components.push( foundation1 );
+        components.push( house );
+        components.push( roof );
+
+        return components;
+    } // makeListOfComponents()
+
+    function assembleByAdding( components ) {
+        figure = new THREE.Object3D();
+        for( c of components ) {
+            figure.add( c );
+        } // for
+        return figure;
+    } // assembleByAdding()
+
+    function assembleByMerging( components ) {
+        let assembly = new THREE.Geometry();
+
+        for( c of components ) {
+            c.updateMatrix();
+            assembly.merge( c.geometry, c.matrix );
+        } // for
+
+        figure = new THREE.Mesh( assembly, components[0].material );
+
+        return figure;
+    } // assembleByMergin()
+
+    function init() {
+        stats = initStats();
+
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(45,
+            window.innerWidth/window.innerHeight, 0.1, 1000);
+
+        renderer = new THREE.WebGLRenderer();
+        renderer.setClearColor( 0xEEEEEE );
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        renderer.shadowMap.enabled = true;
+
+        let spotLight = new THREE.SpotLight( 0xFFFFFF );
+        spotLight.position.set( 40, 60, 50 );
+
+        scene.add( spotLight );
+
+        let axes = new THREE.AxisHelper(20);
+        scene.add( axes );
+
+        // TO-DO: Try making small changes.
+        //     Change the values of parameters.
+        //     Learn the meaning and significance of parameters.
+        let planeGeometry = new THREE.PlaneGeometry(48, 48, 1, 1);
+        let planeMaterial = new THREE.MeshPhongMaterial(
+          {color: 0x2E8B57} );
+        let plane = new THREE.Mesh( planeGeometry, planeMaterial );
+
+        plane.rotation.x = -0.5 * Math.PI;
+        plane.position.x = 0;
+        plane.position.y = 0;
+        plane.position.z = 0;
+        scene.add( plane )
+
+        let components = makeListOfComponents();
+     
+        figure = assembleByAdding( components );
+        //figure = assembleByMerging( components );
+
+        scene.add( figure );
+
+        figure.castShow = true;
+        spotLight.castShadow = true;
+
+        plane.receiveShadow = true;
+
+        camera.position.x = -12;
+        camera.position.y = 12;
+        camera.position.z = 40;
+        camera.lookAt( scene.position );
+
+        document.getElementById( "WebGL-output").
+            appendChild( renderer.domElement );
+        //renderer.render( scene, camera );
+        renderScene();
+    };
+
+    window.onload = init;
+</script>
+
+</html>
