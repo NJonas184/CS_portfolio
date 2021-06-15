@@ -1,0 +1,21 @@
+#BlueJ class context
+comment0.target=CSC301Sorts
+comment1.params=args
+comment1.target=void\ main(java.lang.String[])
+comment1.text=\r\n\ Runs\ and\ tests\ quicksort\ and\ mergesort\r\n\ @param\ args\r\n\ \r\n
+comment2.params=n
+comment2.target=int[]\ randomArray(int)
+comment2.text=\r\n\ Creates\ a\ random\ array\ for\ use\ of\ sorts\r\n\ @param\ n\ \:\ number\ of\ elements\ in\ array\r\n\ @return\ an\ array\ of\ size\ n\r\n
+comment3.params=a\ l\ r
+comment3.target=void\ quicksort(int[],\ int,\ int)
+comment3.text=\r\n\ Sorts\ a\ given\ array\ y\ using\ the\ sort\ known\ as\ quicksort\r\n\ @param\ a\ \:\ array\ being\ used\ sorted\ by\ quicksort\r\n\ @param\ l\ \:\ left\ of\ the\ array;\ also\ known\ as\ low\ \r\n\ @param\ r\ \:\ right\ of\ the\ array;\ also\ known\ as\ high\r\n
+comment4.params=a\ i\ j
+comment4.target=void\ swap(int[],\ int,\ int)
+comment4.text=\r\n\ \ Swaps\ two\ elements\ in\ an\ array\r\n\ @param\ a\ \:\ array\ being\ sorted\ by\ either\ quicksort\ or\ merge\ sort\r\n\ @param\ i\ \:\ index\ of\ the\ first\ element\ being\ swapped\r\n\ @param\ j\ \:\ index\ of\ second\ element\ being\ swapped\r\n
+comment5.params=a\ l\ r
+comment5.target=void\ mergeSort(int[],\ int,\ int)
+comment5.text=\r\n\ The\ main\ recursive\ algorithm\ in\ mergesort\r\n\ @param\ a\ \:\ The\ array\ being\ sorted\ by\ mergesort\r\n\ @param\ l\ \:\ left\ side\ of\ the\ array;\ also\ the\ low\r\n\ @param\ r\ \:\ right\ side\ of\ the\ array;\ also\ the\ high\r\n
+comment6.params=a\ l\ m\ r
+comment6.target=void\ sort(int[],\ int,\ int,\ int)
+comment6.text=\r\n\ The\ second\ part\ of\ merge\ sort\ which\ puts\ the\ array\ back\ together\r\n\ @param\ a\ \:\ array\ being\ sorted\r\n\ @param\ l\ \:\ left\ side\ of\ the\ array;\ also\ the\ low\r\n\ @param\ m\ \:\ mid\ point\ of\ array\ \r\n\ @param\ r\ \:\ right\ side\ of\ the\ array;\ also\ the\ high\r\n
+numComments=7

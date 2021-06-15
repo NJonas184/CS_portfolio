@@ -1,0 +1,17 @@
+Question #3
+This program is to sort even and odd variables so that even and odd variables will be separated from each other inside an array.
+
+Algorithm: sortEvenOdd(A):
+1. left = 1
+2. right = A.Length
+3. while left < right
+4.	while A [left] mod2 -> 1 and left < right
+5.		left++
+6. 	while A [right] mod2 -> 2 and left <right
+7.		right--
+8. 	if left < right
+9. 		temp = A[left]
+10.		A[left] = A[right]
+11. 		A[right] = temp
+12.		left++
+13.  		right--

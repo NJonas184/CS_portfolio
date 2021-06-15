@@ -1,0 +1,31 @@
+BalanceParenthesis
+
+Approah
+1. Iterate through string once to get rid of unessecary ")"
+2. Iterate backwards to get rid of unessecary "("
+
+
+Algorithm: BalanceMe(s):
+1. counter = 0
+2. for i -> 1, i <= s.length, i++
+3. 	if s.charAt(i) = ')'
+4.		if counter-1 < 0
+5.			remove(s.charAt(i))
+			i--
+6.		else
+7.			counter--
+8.	else
+9.		counter++
+10. counter = 0
+11. for i -> s.length, i > 1, i--
+12.	if s.charAt(i) = '('
+13.		if counter-1 < 0
+14.			remove(s.charAt(i))
+			i++
+15.		else
+16.			counter--
+17.	else
+18.		counter++
+19. return s
+
+"()()"

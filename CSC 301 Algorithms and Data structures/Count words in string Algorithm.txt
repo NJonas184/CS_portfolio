@@ -1,0 +1,36 @@
+1. Given a string of words, write a java method to count the # of
+occurences of each word
+
+"The cat jumps over the brown fox"
+the x2
+cat x1
+...
+
+Approach:
+1. Seperate the words by spaces, put them into an array
+2. Count each instance of word in the array when compared to itself
+
+2 different methods
+#1 mark first character after space, find space, cut out everything before
+space, recursing until 
+#2 Put stuff in the array
+
+StringtoArray returns an array
+Algorithm: StringtoArray(String, Int):
+1. temp = index of " "
+
+
+Diff Approach:
+1. Iterate through string like an array
+2. Place each word in a hashmap, key = word, value = # of occurences
+3. If a word is repeated, value++;
+
+Algorithm: CountWords(String):
+1. WordMap = new HashMap<String, Integer>
+2. temp[] = String.split(" ") //split the string into an array of Strings
+3. for(String a : temp)
+4.	if(WordMap.containsKey(a))
+5.		WordMap.replace(a, value, value++)
+6.	else
+7.		WordMap.put(a, 1)
+8. return WordMap
